@@ -1,48 +1,87 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SL Reaction Game</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
-
 <body>
 
-  <div class="game-container">
+  <!-- ░░ START SCREEN ░░ -->
+  <div id="screen-start" class="screen">
+    <h1 class="game-title">SL Challenge</h1>
 
-    <header>
-      <h1 class="game-title">SL Challenge</h1>
-      <div id="score" class="score">Score: 0</div>
-    </header>
-
-    <main>
-      <div id="letter" class="letter-display">SL</div>
-
-      <div class="instructions">
-        <h2>How to Play:</h2>
-        <ul>
-          <li> <strong>L</strong> → Press <kbd>L</kbd> </li>
-          <li> <strong>S</strong> → Press <kbd>S</kbd> </li>
-          <li> <strong>LL</strong> / <strong>SS</strong> → Press the opposite key </li>
-          <li> <strong>SL</strong> / <strong>LS</strong> → Press <kbd>SPACE</kbd> </li>
-        </ul>
+    <div class="instructions">
+      <h2>How to Play</h2>
+      <div class="rule-row">
+        <span class="rule-seq">S</span>
+        <span class="rule-arrow">→</span>
+        <span>Press <kbd>S</kbd></span>
       </div>
-
-      <div class="start-message">
-        Press <kbd>SPACE</kbd> to start 🚀
+      <div class="rule-row">
+        <span class="rule-seq">L</span>
+        <span class="rule-arrow">→</span>
+        <span>Press <kbd>L</kbd></span>
       </div>
-
-      <div id="secret" class="secret">
-        🔒 Reach at least 10 or a multiple of it to the next level
+      <div class="rule-row">
+        <span class="rule-seq">SS</span>
+        <span class="rule-arrow">→</span>
+        <span>Press the <em>opposite</em> → <kbd>L</kbd></span>
       </div>
-    </main>
+      <div class="rule-row">
+        <span class="rule-seq">LL</span>
+        <span class="rule-arrow">→</span>
+        <span>Press the <em>opposite</em> → <kbd>S</kbd></span>
+      </div>
+      <div class="rule-row">
+        <span class="rule-seq">SL</span>
+        <span class="rule-arrow">→</span>
+        <span>Press <kbd>SPACE</kbd></span>
+      </div>
+      <div class="rule-row">
+        <span class="rule-seq">LS</span>
+        <span class="rule-arrow">→</span>
+        <span>Press <kbd>SPACE</kbd></span>
+      </div>
+    </div>
+
+    <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
+  </div>
+
+  <!-- ░░ GAME SCREEN ░░ -->
+  <div id="screen-game" class="screen hidden">
+    <div class="hud">
+      <span class="hud-score" id="hud-score">Score: 0</span>
+      <span class="hud-level" id="hud-level">Level 1</span>
+      <span class="hud-time"  id="hud-time">⏱ 30s</span>
+    </div>
+
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <div class="letter-tile" id="letter">SL</div>
+    <div class="key-hint"   id="key-hint"></div>
+  </div>
+
+  <!-- ░░ END SCREEN ░░ -->
+  <div id="screen-end" class="screen hidden">
+    <p class="end-title lose" id="end-title">Game Over</p>
+    <p class="end-score">Final score: <span id="end-score-val">0</span></p>
+    <button class="btn-restart" id="btn-restart">Play Again</button>
+    <p style="font-size:13px;color:#475569;margin-top:4px">or press <kbd>SPACE</kbd></p>
+  </div>
+
+  <!-- ░░ WIN SCREEN ░░ -->
+  <div id="screen-win" class="screen hidden">
+    <div class="trophy">🏆</div>
+    <p class="end-title win">You Win!</p>
+    <p class="end-score">You reached score <span id="win-score-val">50</span>!</p>
+    <button class="btn-restart" id="btn-restart-win">Play Again</button>
+    <p style="font-size:13px;color:#475569;margin-top:4px">or press <kbd>SPACE</kbd></p>
   </div>
 
   <script src="popup.js"></script>
-
 </body>
 </html>
-

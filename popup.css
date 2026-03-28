@@ -1,143 +1,279 @@
+/* ── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
 
 body {
-  width:      480px;
-  height:     520px;
-  margin:     3;
-  padding:    24px;
-  box-sizing: border-box;
+  width:   480px;
+  height:  560px;
+  padding: 24px;
 
   display:         flex;
   flex-direction:  column;
   align-items:     center;
   justify-content: center;
-  gap:             16px;
+  gap:             0;
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
   background:
     radial-gradient(120% 120% at 20% 0%, #1e293b 0%, transparent 40%),
     linear-gradient(145deg, #0b1220, #1f2933);
   color: #e5e7eb;
-
   user-select: none;
-
-  /* back to normal */
-  border:        none;
   border-radius: 18px;
-  box-shadow:    none;
+  overflow: hidden;
 }
 
-/* CENTER GAME AREA */
-main {
-  flex:            1;
-  width:           100%;
+/* ── Screen system ────────────────────────────────────── */
+.screen {
   display:         flex;
   flex-direction:  column;
   align-items:     center;
   justify-content: center;
+  width:           100%;
+  height:          100%;
+  gap:             20px;
+  transition:      opacity 0.25s ease;
 }
 
-/* Main letter tile */
-#letter {
-  font-size:      84px;
+.screen.hidden {
+  display: none;
+}
+
+/* ── Header / score bar ───────────────────────────────── */
+.hud {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  width:           100%;
+  padding:         0 4px 4px;
+  font-size:       15px;
+  font-weight:     600;
+  color:           #94a3b8;
+  letter-spacing:  0.02em;
+}
+
+.hud-score  { color: #e2e8f0; font-size: 17px; font-weight: 700; }
+.hud-level  { color: #60a5fa; }
+.hud-time   { color: #f59e0b; }
+
+/* ── Timer bar ────────────────────────────────────────── */
+.timer-bar-wrap {
+  width:         100%;
+  height:        6px;
+  background:    rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow:      hidden;
+}
+
+.timer-bar {
+  height:        100%;
+  width:         100%;
+  border-radius: 99px;
+  background:    linear-gradient(90deg, #f59e0b, #ef4444);
+  transform-origin: left;
+  transition:    width 0.9s linear;
+}
+
+/* ── Main letter tile ─────────────────────────────────── */
+.letter-tile {
+  font-size:      88px;
   font-weight:    800;
-  letter-spacing: 10px;
-  padding:        22px 40px;
-  border-radius:  22px;
+  letter-spacing: 8px;
+  padding:        22px 48px;
+  border-radius:  24px;
 
   background: linear-gradient(180deg, #0f172a, #020617);
   box-shadow:
     inset 0 0 0 3px #334155,
-    0 18px 40px rgba(0, 0, 0, 0.6);
+    0 20px 48px rgba(0, 0, 0, 0.65);
 
-  transform: translateY(0);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+  min-width: 200px;
+  text-align: center;
 }
 
-#letter.active {
-  transform: translateY(2px);
+.letter-tile.pressed {
+  transform: translateY(3px) scale(0.97);
   box-shadow:
     inset 0 0 0 3px #475569,
-    0 10px 24px rgba(0, 0, 0, 0.5);
+    0 8px 20px rgba(0,0,0,0.5);
 }
 
-/* Score */
-#score {
-  font-size:   32px;
-  font-weight: 600;
-  opacity:     0.9;
+.letter-tile.correct {
+  background: linear-gradient(180deg, #14532d, #052e16);
+  box-shadow:
+    inset 0 0 0 3px #22c55e,
+    0 20px 48px rgba(34,197,94,0.25);
 }
 
-/* Instruction text */
-.hint {
-  font-size:   24px;
+.letter-tile.wrong {
+  background: linear-gradient(180deg, #7f1d1d, #450a0a);
+  box-shadow:
+    inset 0 0 0 3px #ef4444,
+    0 20px 48px rgba(239,68,68,0.3);
+}
+
+/* ── Key hint ─────────────────────────────────────────── */
+.key-hint {
+  font-size:    13px;
+  color:        #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  height:       18px;
+  transition:   opacity 0.2s;
+}
+
+/* ── ─────── START SCREEN ─────────────────────────────── */
+.game-title {
+  font-size:   38px;
+  font-weight: 800;
+  background:  linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+}
+
+.instructions {
+  background:    rgba(255,255,255,0.04);
+  border:        1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding:       18px 24px;
+  width:         100%;
+  display:       flex;
+  flex-direction:column;
+  gap:           10px;
+}
+
+.instructions h2 {
+  font-size:   13px;
+  font-weight: 700;
+  color:       #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 2px;
+}
+
+.rule-row {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  font-size:   15px;
+}
+
+.rule-seq {
+  font-weight: 700;
+  font-size:   17px;
+  background:  rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding:     3px 10px;
+  min-width:   52px;
   text-align:  center;
-  line-height: 1.45;
-  opacity:     0.75;
+  letter-spacing: 3px;
 }
 
-/* Secret / feedback */
-#secret {
-  margin-top:  12px;
-  font-size:   14px;
-  color:       #81D8D0;
-  font-weight: 700;
-  opacity:     0.9;
+.rule-arrow { color: #475569; }
+
+kbd {
+  display:       inline-block;
+  padding:       3px 10px;
+  background:    #1e293b;
+  border:        1px solid #334155;
+  border-bottom: 3px solid #334155;
+  border-radius: 7px;
+  font-size:     13px;
+  font-weight:   700;
+  font-family:   inherit;
+  color:         #cbd5e1;
 }
 
-/* Button */
-button {
-  margin-top:  24px;
-  padding:     16px 36px;
-  font-size:   28px;
-  font-weight: 700;
-  color:       #e5e7eb;
+.start-message {
+  font-size:   16px;
+  color:       #94a3b8;
+  text-align:  center;
+  animation:   pulse 2s ease-in-out infinite;
+}
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1;   }
+}
+
+/* ── GAME SCREEN ──────────────────────────────────────── */
+#screen-game {
+  gap: 14px;
+}
+
+/* ── END / WIN SCREENS ────────────────────────────────── */
+.end-title {
+  font-size:   44px;
+  font-weight: 800;
+  text-align:  center;
+  line-height: 1.1;
+}
+
+.end-title.win {
+  background:  linear-gradient(135deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.end-title.lose { color: #f87171; }
+.end-title.time { color: #fb923c; }
+
+.end-score {
+  font-size:   22px;
+  font-weight: 600;
+  color:       #94a3b8;
+  text-align:  center;
+}
+
+.end-score span {
+  color:       #e2e8f0;
+  font-weight: 700;
+}
+
+/* ── Restart button ───────────────────────────────────── */
+.btn-restart {
+  margin-top:    8px;
+  padding:       14px 36px;
+  font-size:     18px;
+  font-weight:   700;
+  font-family:   inherit;
+  color:         #e2e8f0;
   background:    linear-gradient(180deg, #3b82f6, #1d4ed8);
   border:        none;
   border-radius: 14px;
-
-  cursor: pointer;
-  transition:
-    transform  0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.2s ease;
-
-  box-shadow:
-    0 12px 28px rgba(37, 99, 235, 0.45);
+  cursor:        pointer;
+  transition:    transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow:    0 12px 28px rgba(37,99,235,0.45);
 }
 
-button:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    0 16px 36px rgba(37, 99, 235, 0.55);
+.btn-restart:hover  { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(37,99,235,0.55); }
+.btn-restart:active { transform: translateY(2px);  box-shadow: 0 6px 14px rgba(37,99,235,0.4);  }
+.btn-restart:focus-visible { outline: 3px solid #93c5fd; outline-offset: 4px; }
+
+/* ── Level-up flash ───────────────────────────────────── */
+.level-badge {
+  font-size:   28px;
+  font-weight: 800;
+  color:       #a78bfa;
+  letter-spacing: 2px;
+  animation:   popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 
-button:active {
-  transform: translateY(2px);
-  box-shadow:
-    0 8px 18px rgba(37, 99, 235, 0.4);
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
-button:focus-visible {
-  outline: 3px solid #93c5fd;
-  outline-offset: 4px;
+/* ── Trophy emoji bounce ──────────────────────────────── */
+.trophy {
+  font-size: 64px;
+  animation: bounce 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
 }
 
-.mode-select {
-  display:         flex;
-  justify-content: center;
-  gap:             20px;
-  margin:          12px 0;
-  font-size:       18px;
+@keyframes bounce {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
 }
-
-.mode-select label {
-  cursor:  pointer;
-  opacity: 0.85;
-}
-
-.mode-select input {
-  margin-right: 6px;
-  accent-color: #3b82f6;
-}
-

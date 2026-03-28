@@ -1,186 +1,218 @@
+/* ─── State ────────────────────────────────────────────── */
+let score       = 0;
+let level       = 1;
+let realCurrent = "";
+let alive       = false;
+let timeLeft    = 30;
 
-let score         = 0;
-let level         = 1;
-let current       = "";
-let realCurrent   = "";
-let alive         = false;
-
-/* ⏱️ TIMER */
-
-let timeLeft      = 30;
 let timerInterval = null;
-
-/* ⏳ IDLE CHANGE TIMER */
-
 let changeTimeout = null;
 
-const letterDiv   = document.getElementById("letter");
-const scoreDiv    = document.getElementById("score");
+/* ─── DOM ──────────────────────────────────────────────── */
+const screens = {
+  start : document.getElementById("screen-start"),
+  game  : document.getElementById("screen-game"),
+  end   : document.getElementById("screen-end"),
+  win   : document.getElementById("screen-win"),
+};
 
-function updateScoreBar() {
-  scoreDiv.textContent = `Score: ${score} | Level: ${level} | Time: ${timeLeft}`;
+const letterEl    = document.getElementById("letter");
+const hudScore    = document.getElementById("hud-score");
+const hudLevel    = document.getElementById("hud-level");
+const hudTime     = document.getElementById("hud-time");
+const timerBar    = document.getElementById("timer-bar");
+const keyHint     = document.getElementById("key-hint");
+const endTitle    = document.getElementById("end-title");
+const endScoreVal = document.getElementById("end-score-val");
+const winScoreVal = document.getElementById("win-score-val");
+
+document.getElementById("btn-restart")    .addEventListener("click", startGame);
+document.getElementById("btn-restart-win").addEventListener("click", startGame);
+
+/* ─── Screen helper ────────────────────────────────────── */
+function showScreen(name) {
+  Object.entries(screens).forEach(([key, el]) => {
+    el.classList.toggle("hidden", key !== name);
+  });
 }
 
-/* ⏱️ MAIN GAME TIMER */
+/* ─── HUD update ───────────────────────────────────────── */
+function updateHud() {
+  hudScore.textContent = `Score: ${score}`;
+  hudLevel.textContent = `Level ${level}`;
+  hudTime .textContent = `⏱ ${timeLeft}s`;
 
+  // Timer bar width
+  timerBar.style.width = `${(timeLeft / 30) * 100}%`;
+  // Colour shift: green → amber → red
+  if      (timeLeft > 15) timerBar.style.background = "linear-gradient(90deg,#22c55e,#84cc16)";
+  else if (timeLeft > 8)  timerBar.style.background = "linear-gradient(90deg,#f59e0b,#f97316)";
+  else                    timerBar.style.background = "linear-gradient(90deg,#ef4444,#dc2626)";
+}
+
+/* ─── Key hint text ────────────────────────────────────── */
+const HINT_LABELS = {
+  S : "press  S",
+  L : "press  L",
+  SS: "press  L  (opposite)",
+  LL: "press  S  (opposite)",
+  SL: "press  SPACE",
+  LS: "press  SPACE",
+};
+
+function updateHint(seq) {
+  keyHint.textContent = ""; // hidden until correct — shows after a small delay for challenge
+}
+
+/* ─── Timer ────────────────────────────────────────────── */
 function startTimer() {
   clearInterval(timerInterval);
   timeLeft = 30;
-  updateScoreBar();
+  updateHud();
 
   timerInterval = setInterval(() => {
     timeLeft--;
-    updateScoreBar();
-
-    if (timeLeft <= 0) {
-      timeLeft = 0;
-      gameOver(true);
-    }
+    updateHud();
+    if (timeLeft <= 0) { timeLeft = 0; gameOver("time"); }
   }, 1000);
 }
 
-function stopTimer() {
-  clearInterval(timerInterval);
-}
+function stopTimer()    { clearInterval(timerInterval); }
 
-/* 🎚️ LEVEL SPEED */
+/* ─── Level speed ──────────────────────────────────────── */
+const LEVEL_SPEED = { 1: 5000, 2: 4000, 3: 3000, 4: 2000, 5: 1500 };
 
-function levelSpeed() {
-  switch (level) {
-    case 1: return 5000;
-    case 2: return 4000;
-    case 3: return 3000;
-    case 4: return 2000;
-    case 5: return 1000;
-  }
-}
+function levelSpeed() { return LEVEL_SPEED[level] ?? 1500; }
 
-/* ⏳ IDLE LETTER CHANGE */
-
+/* ─── Idle change ──────────────────────────────────────── */
 function startIdleTimer() {
   clearTimeout(changeTimeout);
-
   changeTimeout = setTimeout(() => {
-    if (alive) {
-      nextRound();
-      startIdleTimer();
-    }
+    if (alive) { nextRound(); startIdleTimer(); }
   }, levelSpeed());
 }
 
-function stopIdleTimer() {
-  clearTimeout(changeTimeout);
-}
+function stopIdleTimer() { clearTimeout(changeTimeout); }
 
-/* 🎲 LETTER GENERATION */
-
+/* ─── Letter generation ────────────────────────────────── */
 function randomLetters() {
   const letters = ["S", "L"];
   const count   = Math.random() < 0.5 ? 1 : 2;
-
-  let result = "";
-  for (let i = 0; i < count; i++) {
+  let   result  = "";
+  for (let i = 0; i < count; i++)
     result += letters[Math.floor(Math.random() * 2)];
-  }
   return result;
 }
 
-/* 🎯 CORRECT KEY */
+/* ─── Correct key map ──────────────────────────────────── */
+const CORRECT_KEY = { S: "s", L: "l", SS: "l", LL: "s", SL: " ", LS: " " };
 
-function correctKey(seq) {
-  switch (seq) {
-    case "S":  return "s";
-    case "L":  return "l";
-    case "SS": return "l";
-    case "LL": return "s";
-    case "SL": return " ";
-    case "LS": return " ";
-  }
-}
+function correctKey(seq) { return CORRECT_KEY[seq]; }
 
-/* 🔄 NEXT ROUND */
-
+/* ─── Next round ───────────────────────────────────────── */
 function nextRound() {
   realCurrent           = randomLetters();
-  current               = realCurrent;
-  letterDiv.textContent = current;
+  letterEl.textContent  = realCurrent;
+  letterEl.className    = "letter-tile";  // reset colour
+  updateHint(realCurrent);
 }
 
-/* 🚀 START GAME */
+/* ─── Feedback flash ───────────────────────────────────── */
+function flashTile(cls) {
+  letterEl.classList.add(cls);
+  setTimeout(() => letterEl.classList.remove(cls), 260);
+}
 
+/* ─── Start game ───────────────────────────────────────── */
 function startGame() {
   score = 0;
   level = 1;
   alive = true;
 
-  letterDiv.textContent = "GO";
+  showScreen("game");
 
+  letterEl.textContent = "GO!";
+  letterEl.className   = "letter-tile";
+  keyHint .textContent = "";
+  updateHud();
   startTimer();
 
   setTimeout(() => {
     nextRound();
     startIdleTimer();
-  }, 500);
+  }, 600);
 }
 
-/* 💀 GAME OVER */
-
-function gameOver(timeUp = false) {
+/* ─── Game over ────────────────────────────────────────── */
+function gameOver(reason = "wrong") {
   alive = false;
-
   stopTimer();
   stopIdleTimer();
 
-  letterDiv.textContent = timeUp ? "Time's up!" : "Good try";
-  scoreDiv.textContent  = timeUp
-    ? `Time's up! Final score: ${score}`
-    : `Game Over! Final score: ${score}`;
+  if (reason === "win") {
+    winScoreVal.textContent = score;
+    showScreen("win");
+  } else {
+    endScoreVal.textContent = score;
+    endTitle.className      = reason === "time" ? "end-title time" : "end-title lose";
+    endTitle.textContent    = reason === "time" ? "Time's Up!" : "Good Try!";
+    showScreen("end");
+  }
 }
 
-/* ⌨️ INPUT */
+/* ─── Level thresholds ─────────────────────────────────── */
+const LEVEL_AT = { 10: 2, 20: 3, 30: 4, 40: 5 };
+const WIN_SCORE = 50;
 
+/* ─── Key input ────────────────────────────────────────── */
 document.addEventListener("keydown", (e) => {
 
+  // Prevent page scroll on space
+  if (e.key === " ") e.preventDefault();
+
   if (!alive) {
-    if (e.key === " ") startGame();
+    const onEndScreen = !screens.end.classList.contains("hidden") ||
+                        !screens.win.classList.contains("hidden") ||
+                        !screens.start.classList.contains("hidden");
+    if (e.key === " " && onEndScreen) startGame();
     return;
   }
 
   if (!["s", "l", " "].includes(e.key)) return;
 
+  // Press animation
+  letterEl.classList.add("pressed");
+  setTimeout(() => letterEl.classList.remove("pressed"), 120);
+
   if (e.key === correctKey(realCurrent)) {
+    score++;
+    flashTile("correct");
 
-    score++ ;
+    // Win condition
+    if (score >= WIN_SCORE) { gameOver("win"); return; }
 
-    let leveledUp = false;
+    // Level up
+    if (LEVEL_AT[score]) {
+      level = LEVEL_AT[score];
+      letterEl.textContent = `LEVEL ${level}!`;
+      letterEl.className   = "letter-tile";
+      updateHud();
 
-    if (score === 10) { level = 2; leveledUp = true; }
-    if (score === 20) { level = 3; leveledUp = true; }
-    if (score === 30) { level = 4; leveledUp = true; }
-    if (score === 40) { level = 5; leveledUp = true; }
-    if (score === 50) { alert("YOU WIN, CONGRATS!"); } 
-
-    if (leveledUp) {
-
-      letterDiv.textContent = `LEVEL ${level}!`;
-      updateScoreBar();
-
+      stopIdleTimer();
       setTimeout(() => {
-        startTimer    ();
-        nextRound     ();
+        startTimer();
+        nextRound();
         startIdleTimer();
-      }, 500);
-
+      }, 700);
       return;
     }
 
+    updateHud();
     nextRound();
-    updateScoreBar();
     startIdleTimer();
 
   } else {
-    gameOver();
+    flashTile("wrong");
+    setTimeout(() => gameOver("wrong"), 280);
   }
-  
 });
-
