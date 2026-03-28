@@ -1,5 +1,5 @@
 {
-  "manifest_version": 4,
+  "manifest_version": 3,
   "name": "SL Reflex Game",
   "version": "1.2.1",
   "description": "A reflex typing game",
