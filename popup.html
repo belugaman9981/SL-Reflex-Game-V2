@@ -11,26 +11,17 @@
   <!-- ░░ HOME — SWIPE DECK ░░ -->
   <div id="screen-home" class="screen">
     <p class="swipe-eyebrow">Choose your game</p>
-
     <div class="swipe-deck-wrap">
-      <!-- Back card (next mode, peeking) -->
       <div class="swipe-card" id="swipe-back"></div>
-
-      <!-- Top card (current mode, draggable) -->
       <div class="swipe-card" id="swipe-top">
-        <!-- PLAY stamp -->
         <div class="stamp stamp-play" id="stamp-play">PLAY</div>
-        <!-- SKIP stamp -->
         <div class="stamp stamp-skip" id="stamp-skip">SKIP</div>
       </div>
     </div>
-
-    <!-- Action buttons -->
     <div class="swipe-actions">
-      <button class="swipe-btn nope"  id="btn-nope" title="Skip">✕</button>
-      <button class="swipe-btn like"  id="btn-like" title="Play">▶</button>
+      <button class="swipe-btn nope" id="btn-nope" title="Skip">✕</button>
+      <button class="swipe-btn like" id="btn-like" title="Play">▶</button>
     </div>
-
     <p class="swipe-hint">drag or use the buttons</p>
   </div>
 
@@ -102,6 +93,51 @@
     <div class="rt-rating"  id="rt-rating"></div>
     <button class="btn-restart" id="btn-rt-again">Try Again</button>
     <button class="btn-ghost"   id="btn-rt-home">← Menu</button>
+  </div>
+
+  <!-- ░░ SUDOKU ░░ -->
+  <div id="screen-sudoku" class="screen hidden">
+    <div class="sdk-header">
+      <div class="sdk-meta">
+        <span class="sdk-diff" id="sdk-diff">Medium</span>
+        <span class="sdk-timer" id="sdk-timer">0:00</span>
+        <span class="sdk-mistakes" id="sdk-mistakes">✕ 0 / 3</span>
+      </div>
+      <button class="btn-ghost small" id="btn-sdk-quit">✕ Quit</button>
+    </div>
+
+    <div class="sdk-board" id="sdk-board"></div>
+
+    <div class="sdk-numpad" id="sdk-numpad">
+      <button class="sdk-num" data-n="1">1</button>
+      <button class="sdk-num" data-n="2">2</button>
+      <button class="sdk-num" data-n="3">3</button>
+      <button class="sdk-num" data-n="4">4</button>
+      <button class="sdk-num" data-n="5">5</button>
+      <button class="sdk-num" data-n="6">6</button>
+      <button class="sdk-num" data-n="7">7</button>
+      <button class="sdk-num" data-n="8">8</button>
+      <button class="sdk-num" data-n="9">9</button>
+      <button class="sdk-num erase" data-n="0">⌫</button>
+    </div>
+  </div>
+
+  <!-- ░░ SUDOKU WIN ░░ -->
+  <div id="screen-sudoku-win" class="screen hidden">
+    <div class="trophy">🎉</div>
+    <p class="end-title win">Solved!</p>
+    <p class="end-score">Time: <span id="sdk-win-time">0:00</span></p>
+    <p class="end-score" style="margin-top:-8px">Mistakes: <span id="sdk-win-mistakes">0</span></p>
+    <button class="btn-restart" id="btn-sdk-again">Play Again</button>
+    <button class="btn-ghost"   id="btn-sdk-win-home">← Menu</button>
+  </div>
+
+  <!-- ░░ SUDOKU GAME OVER ░░ -->
+  <div id="screen-sudoku-end" class="screen hidden">
+    <p class="end-title lose">Too many mistakes!</p>
+    <p class="end-score" style="margin-top:4px;font-size:15px;color:#64748b">3 mistakes = game over</p>
+    <button class="btn-restart" id="btn-sdk-retry">Try Again</button>
+    <button class="btn-ghost"   id="btn-sdk-end-home">← Menu</button>
   </div>
 
   <script src="popup.js"></script>
