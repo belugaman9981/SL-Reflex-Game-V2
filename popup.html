@@ -8,78 +8,100 @@
 </head>
 <body>
 
-  <!-- ░░ START SCREEN ░░ -->
-  <div id="screen-start" class="screen">
-    <h1 class="game-title">SL Reflex Game</h1>
+  <!-- ░░ HOME — SWIPE DECK ░░ -->
+  <div id="screen-home" class="screen">
+    <p class="swipe-eyebrow">Choose your game</p>
 
-    <div class="instructions">
-      <h2>How to Play</h2>
-      <div class="rule-row">
-        <span class="rule-seq">S</span>
-        <span class="rule-arrow">→</span>
-        <span>Press <kbd>S</kbd></span>
-      </div>
-      <div class="rule-row">
-        <span class="rule-seq">L</span>
-        <span class="rule-arrow">→</span>
-        <span>Press <kbd>L</kbd></span>
-      </div>
-      <div class="rule-row">
-        <span class="rule-seq">SS</span>
-        <span class="rule-arrow">→</span>
-        <span>Press the <em>opposite</em> → <kbd>L</kbd></span>
-      </div>
-      <div class="rule-row">
-        <span class="rule-seq">LL</span>
-        <span class="rule-arrow">→</span>
-        <span>Press the <em>opposite</em> → <kbd>S</kbd></span>
-      </div>
-      <div class="rule-row">
-        <span class="rule-seq">SL</span>
-        <span class="rule-arrow">→</span>
-        <span>Press <kbd>SPACE</kbd></span>
-      </div>
-      <div class="rule-row">
-        <span class="rule-seq">LS</span>
-        <span class="rule-arrow">→</span>
-        <span>Press <kbd>SPACE</kbd></span>
+    <div class="swipe-deck-wrap">
+      <!-- Back card (next mode, peeking) -->
+      <div class="swipe-card" id="swipe-back"></div>
+
+      <!-- Top card (current mode, draggable) -->
+      <div class="swipe-card" id="swipe-top">
+        <!-- PLAY stamp -->
+        <div class="stamp stamp-play" id="stamp-play">PLAY</div>
+        <!-- SKIP stamp -->
+        <div class="stamp stamp-skip" id="stamp-skip">SKIP</div>
       </div>
     </div>
 
-    <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
+    <!-- Action buttons -->
+    <div class="swipe-actions">
+      <button class="swipe-btn nope"  id="btn-nope" title="Skip">✕</button>
+      <button class="swipe-btn like"  id="btn-like" title="Play">▶</button>
+    </div>
+
+    <p class="swipe-hint">drag or use the buttons</p>
   </div>
 
-  <!-- ░░ GAME SCREEN ░░ -->
+  <!-- ░░ SL INSTRUCTIONS ░░ -->
+  <div id="screen-start" class="screen hidden">
+    <h1 class="game-title">SL Challenge</h1>
+    <div class="instructions">
+      <h2>How to Play</h2>
+      <div class="rule-row"><span class="rule-seq">S</span><span class="rule-arrow">→</span><span>Press <kbd>S</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">L</span><span class="rule-arrow">→</span><span>Press <kbd>L</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">SS</span><span class="rule-arrow">→</span><span>Press the <em>opposite</em> → <kbd>L</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">LL</span><span class="rule-arrow">→</span><span>Press the <em>opposite</em> → <kbd>S</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">SL</span><span class="rule-arrow">→</span><span>Press <kbd>SPACE</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">LS</span><span class="rule-arrow">→</span><span>Press <kbd>SPACE</kbd></span></div>
+    </div>
+    <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
+    <button class="btn-ghost" id="btn-back-sl">← Back</button>
+  </div>
+
+  <!-- ░░ SL GAME ░░ -->
   <div id="screen-game" class="screen hidden">
     <div class="hud">
       <span class="hud-score" id="hud-score">Score: 0</span>
       <span class="hud-level" id="hud-level">Level 1</span>
       <span class="hud-time"  id="hud-time">⏱ 30s</span>
     </div>
-
     <div class="timer-bar-wrap">
       <div class="timer-bar" id="timer-bar"></div>
     </div>
-
     <div class="letter-tile" id="letter">SL</div>
-    <div class="key-hint"   id="key-hint"></div>
+    <div class="key-hint" id="key-hint"></div>
   </div>
 
-  <!-- ░░ END SCREEN ░░ -->
+  <!-- ░░ SL END ░░ -->
   <div id="screen-end" class="screen hidden">
     <p class="end-title lose" id="end-title">Game Over</p>
     <p class="end-score">Final score: <span id="end-score-val">0</span></p>
     <button class="btn-restart" id="btn-restart">Play Again</button>
-    <p style="font-size:13px;color:#475569;margin-top:4px">or press <kbd>SPACE</kbd></p>
+    <button class="btn-ghost"   id="btn-end-home">← Menu</button>
   </div>
 
-  <!-- ░░ WIN SCREEN ░░ -->
+  <!-- ░░ SL WIN ░░ -->
   <div id="screen-win" class="screen hidden">
     <div class="trophy">🏆</div>
     <p class="end-title win">You Win!</p>
     <p class="end-score">You reached score <span id="win-score-val">50</span>!</p>
     <button class="btn-restart" id="btn-restart-win">Play Again</button>
-    <p style="font-size:13px;color:#475569;margin-top:4px">or press <kbd>SPACE</kbd></p>
+    <button class="btn-ghost"   id="btn-win-home">← Menu</button>
+  </div>
+
+  <!-- ░░ REACTION TEST ░░ -->
+  <div id="screen-rt" class="screen hidden">
+    <div class="rt-hud">
+      <span id="rt-round-label">Round 1 / 5</span>
+      <button class="btn-ghost small" id="btn-rt-quit">✕ Quit</button>
+    </div>
+    <div class="rt-tile waiting" id="rt-tile">
+      <span id="rt-tile-text">⏳</span>
+      <span class="rt-tile-label" id="rt-tile-label">Get ready…</span>
+    </div>
+    <div class="rt-log" id="rt-log"></div>
+    <p class="rt-sub" id="rt-sub">Press <kbd>SPACE</kbd> when the tile turns <span style="color:#22c55e;font-weight:700">green</span></p>
+  </div>
+
+  <!-- ░░ REACTION RESULTS ░░ -->
+  <div id="screen-rt-end" class="screen hidden">
+    <p class="end-title" style="color:#e2e8f0">Your Results</p>
+    <div class="rt-summary" id="rt-summary"></div>
+    <div class="rt-rating"  id="rt-rating"></div>
+    <button class="btn-restart" id="btn-rt-again">Try Again</button>
+    <button class="btn-ghost"   id="btn-rt-home">← Menu</button>
   </div>
 
   <script src="popup.js"></script>
