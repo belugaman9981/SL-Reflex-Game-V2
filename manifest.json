@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SL Reflex Game Plus",
   "version": "1.2.2",
-  "description": "A series of games for users with adhd",
+  "description": "A series of games for users with adhd; adhd game",
   "action": {
     "default_popup": "popup.html"
   }
