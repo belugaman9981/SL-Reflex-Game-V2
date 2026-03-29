@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reflex Game System</title>
+  <title>SL Reaction Game</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
@@ -108,6 +108,17 @@
 
     <div class="sdk-board" id="sdk-board"></div>
 
+    <div class="sdk-controls">
+      <button class="sdk-tool" id="btn-sdk-notes" title="Toggle notes mode">
+        <span class="sdk-tool-icon">✏️</span>
+        <span class="sdk-tool-label">Notes</span>
+      </button>
+      <button class="sdk-tool" id="btn-sdk-erase" title="Erase cell">
+        <span class="sdk-tool-icon">⌫</span>
+        <span class="sdk-tool-label">Erase</span>
+      </button>
+    </div>
+
     <div class="sdk-numpad" id="sdk-numpad">
       <button class="sdk-num" data-n="1">1</button>
       <button class="sdk-num" data-n="2">2</button>
@@ -118,7 +129,6 @@
       <button class="sdk-num" data-n="7">7</button>
       <button class="sdk-num" data-n="8">8</button>
       <button class="sdk-num" data-n="9">9</button>
-      <button class="sdk-num erase" data-n="0">⌫</button>
     </div>
   </div>
 

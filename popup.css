@@ -256,22 +256,71 @@ kbd {
   100% { background: rgba(239,68,68,0.12); }
 }
 
+/* Controls row (Notes + Erase) */
+.sdk-controls {
+  display: flex;
+  gap: 10px;
+  width: 342px;
+}
+
+.sdk-tool {
+  flex: 1; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  color: #94a3b8; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer; transition: background .12s, color .12s, border-color .12s, transform .1s;
+}
+.sdk-tool:hover  { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+.sdk-tool:active { transform: scale(0.95); }
+.sdk-tool.active {
+  background: rgba(251,191,36,0.15);
+  border-color: rgba(251,191,36,0.5);
+  color: #fbbf24;
+}
+.sdk-tool-icon  { font-size: 14px; line-height: 1; }
+.sdk-tool-label { letter-spacing: .04em; text-transform: uppercase; }
+
 /* Numpad */
 .sdk-numpad {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(9, 1fr);
   gap: 5px;
   width: 342px;
 }
 
 .sdk-num {
-  height: 36px; border-radius: 8px;
+  height: 38px; border-radius: 8px;
   font-size: 16px; font-weight: 700; font-family: inherit;
   color: #e2e8f0; background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
-  cursor: pointer; transition: background .12s ease, transform .1s ease;
+  cursor: pointer; transition: background .12s ease, transform .1s ease, border-color .12s;
 }
 .sdk-num:hover  { background: rgba(255,255,255,0.12); }
 .sdk-num:active { transform: scale(0.92); }
-.sdk-num.erase  { color: #f87171; font-size: 14px; }
 .sdk-num.dim    { opacity: 0.3; pointer-events: none; }
+
+/* Notes mode — numpad buttons tinted amber */
+body.notes-mode .sdk-num:not(.dim) {
+  border-color: rgba(251,191,36,0.35);
+  color: #fbbf24;
+}
+
+/* Notes grid inside a cell — 3×3 of mini numbers */
+.sdk-notes {
+  position: absolute; inset: 1px;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  grid-template-rows: repeat(3,1fr);
+  pointer-events: none;
+}
+
+.sdk-note-n {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7px; font-weight: 700; line-height: 1;
+  color: #fbbf24;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.sdk-note-n.on { opacity: 1; }

@@ -388,6 +388,24 @@ document.getElementById("btn-sdk-win-home").addEventListener("click", goHome);
 document.getElementById("btn-sdk-retry")   .addEventListener("click", startSudoku);
 document.getElementById("btn-sdk-end-home").addEventListener("click", goHome);
 
+/* ── Notes mode state ── */
+let sdkNotesMode = false;
+// sdkNotesCells[r][c] = Set of pencilled numbers
+let sdkNotesCells = [];
+
+function sdkInitNotes() {
+  sdkNotesCells = Array.from({length:9}, () => Array.from({length:9}, () => new Set()));
+}
+
+function sdkSetNotesMode(on) {
+  sdkNotesMode = on;
+  document.body.classList.toggle("notes-mode", on);
+  document.getElementById("btn-sdk-notes").classList.toggle("active", on);
+}
+
+document.getElementById("btn-sdk-notes").addEventListener("click", () => sdkSetNotesMode(!sdkNotesMode));
+document.getElementById("btn-sdk-erase").addEventListener("click", () => sdkInput(0));
+
 /* ── Numpad ── */
 document.getElementById("sdk-numpad").addEventListener("click", e => {
   const btn = e.target.closest(".sdk-num");
@@ -398,6 +416,7 @@ document.getElementById("sdk-numpad").addEventListener("click", e => {
 /* ── Keyboard ── */
 document.addEventListener("keydown", e => {
   if (document.getElementById("screen-sudoku").classList.contains("hidden")) return;
+  if (e.key === "n" || e.key === "N") { sdkSetNotesMode(!sdkNotesMode); return; }
   if (e.key >= "1" && e.key <= "9") { sdkInput(Number(e.key)); return; }
   if (e.key === "Backspace" || e.key === "Delete" || e.key === "0") { sdkInput(0); return; }
   if (!sdkSelected) return;
@@ -485,6 +504,8 @@ function startSudoku(diff) {
   sdkMistakes = 0;
   sdkSelected = null;
   sdkMistEl.textContent = "✕ 0 / 3";
+  sdkInitNotes();
+  sdkSetNotesMode(false);
   showScreen("sudoku");
   sdkRenderBoard();
   sdkUpdateNumpad();
@@ -500,13 +521,33 @@ function sdkRenderBoard() {
     cell.dataset.r = r; cell.dataset.c = c;
     cell.dataset.row = r; cell.dataset.col = c;
     const given = sdkPuzzle[r][c] !== 0;
-    if (given) { cell.classList.add("given"); cell.textContent = sdkPuzzle[r][c]; }
-    else if (sdkPlayer[r][c] !== 0) { cell.classList.add("filled"); cell.textContent = sdkPlayer[r][c]; }
-    else { cell.classList.add("empty"); }
+    if (given) {
+      cell.classList.add("given"); cell.textContent = sdkPuzzle[r][c];
+    } else if (sdkPlayer[r][c] !== 0) {
+      cell.classList.add("filled"); cell.textContent = sdkPlayer[r][c];
+    } else {
+      cell.classList.add("empty");
+      cell.appendChild(sdkMakeNotesGrid(r, c));
+    }
     cell.addEventListener("click", () => sdkSelect(r,c));
     sdkBoardEl.appendChild(cell);
   }
   if (sdkSelected) sdkHighlight(sdkSelected.r, sdkSelected.c);
+}
+
+/* Build the 3×3 mini-grid for pencil marks */
+function sdkMakeNotesGrid(r, c) {
+  const grid = document.createElement("div");
+  grid.className = "sdk-notes";
+  for (let n=1; n<=9; n++) {
+    const span = document.createElement("span");
+    span.className = "sdk-note-n";
+    span.dataset.n = n;
+    span.textContent = n;
+    if (sdkNotesCells[r][c].has(n)) span.classList.add("on");
+    grid.appendChild(span);
+  }
+  return grid;
 }
 
 /* ── Select cell ── */
@@ -536,20 +577,34 @@ function sdkInput(n) {
   const {r,c} = sdkSelected;
   if (sdkPuzzle[r][c] !== 0) return; // given cell
 
+  /* Erase */
   if (n === 0) {
     sdkPlayer[r][c] = 0;
-    sdkRefreshCell(r, c, false);
+    sdkNotesCells[r][c].clear();
+    sdkRefreshCell(r, c);
     sdkHighlight(r, c);
     sdkUpdateNumpad();
     return;
   }
 
-  if (sdkPlayer[r][c] === n) return; // already placed
+  /* Notes mode — toggle the pencil mark */
+  if (sdkNotesMode) {
+    if (sdkPlayer[r][c] !== 0) return; // can't annotate a filled cell
+    const notes = sdkNotesCells[r][c];
+    notes.has(n) ? notes.delete(n) : notes.add(n);
+    sdkRefreshCell(r, c);
+    return;
+  }
+
+  /* Normal mode */
+  if (sdkPlayer[r][c] === n) return;
 
   if (n === sdkBoard[r][c]) {
-    // Correct
+    // Correct — place the number and scrub this number from notes in same row/col/box
     sdkPlayer[r][c] = n;
-    sdkRefreshCell(r, c, false);
+    sdkNotesCells[r][c].clear();
+    sdkRemoveNoteFromPeers(r, c, n);
+    sdkRefreshCell(r, c);
     sdkHighlight(r, c);
     sdkUpdateNumpad();
     if (sdkCheckWin()) { sdkWin(); }
@@ -557,29 +612,49 @@ function sdkInput(n) {
     // Wrong
     sdkMistakes++;
     sdkMistEl.textContent = `✕ ${sdkMistakes} / 3`;
-    // Briefly show the wrong number then clear
     const cellEl = sdkBoardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+    // Temporarily show wrong number
+    cellEl.innerHTML = "";
     cellEl.textContent = n;
     cellEl.classList.remove("empty","filled");
     cellEl.classList.add("filled","error","error-flash");
     setTimeout(()=>{
-      cellEl.classList.remove("error","error-flash","filled");
-      cellEl.textContent = sdkPlayer[r][c] || "";
-      cellEl.classList.add(sdkPlayer[r][c] ? "filled" : "empty");
+      sdkRefreshCell(r, c);
       sdkHighlight(r, c);
     }, 600);
     if (sdkMistakes >= 3) { setTimeout(()=>{ sdkStopTimer(); showScreen("sudoku-end"); },700); }
   }
 }
 
-function sdkRefreshCell(r, c, isError) {
+/* Remove a note from all peers when a number is confirmed */
+function sdkRemoveNoteFromPeers(r, c, n) {
+  const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+  for (let i=0;i<9;i++) {
+    sdkNotesCells[r][i].delete(n);
+    sdkNotesCells[i][c].delete(n);
+  }
+  for (let i=0;i<3;i++) for (let j=0;j<3;j++) sdkNotesCells[br+i][bc+j].delete(n);
+  // Re-render affected cells
+  for (let i=0;i<9;i++) {
+    if (sdkPlayer[r][i]===0) sdkRefreshCell(r,i);
+    if (sdkPlayer[i][c]===0) sdkRefreshCell(i,c);
+  }
+  for (let i=0;i<3;i++) for (let j=0;j<3;j++) if (sdkPlayer[br+i][bc+j]===0) sdkRefreshCell(br+i,bc+j);
+}
+
+function sdkRefreshCell(r, c) {
   const cellEl = sdkBoardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
   if (!cellEl) return;
   const v = sdkPlayer[r][c];
-  cellEl.classList.remove("empty","filled","error");
-  cellEl.textContent = v || "";
-  if (isError) cellEl.classList.add("filled","error");
-  else         cellEl.classList.add(v ? "filled" : "empty");
+  cellEl.classList.remove("empty","filled","error","error-flash");
+  cellEl.innerHTML = "";
+  if (v) {
+    cellEl.textContent = v;
+    cellEl.classList.add("filled");
+  } else {
+    cellEl.classList.add("empty");
+    cellEl.appendChild(sdkMakeNotesGrid(r, c));
+  }
 }
 
 function sdkCheckWin() {
