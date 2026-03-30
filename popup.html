@@ -1,16 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reflex Game System</title>
-  <link rel="stylesheet" href="popup.css" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SL Games</title>
+  <link rel="stylesheet" href="popup.css"/>
 </head>
 <body>
 
-  <!-- ░░ HOME — SWIPE DECK ░░ -->
+  <!-- Achievement toast (overlay) -->
+  <div id="ach-toast" class="ach-toast"></div>
+
+  <!-- ░░ HOME ░░ -->
   <div id="screen-home" class="screen">
+    <div id="ach-bar" class="ach-bar"></div>
     <p class="swipe-eyebrow">Choose your game</p>
     <div class="swipe-deck-wrap">
       <div class="swipe-card" id="swipe-back"></div>
@@ -20,10 +23,10 @@
       </div>
     </div>
     <div class="swipe-actions">
-      <button class="swipe-btn nope" id="btn-nope" title="Skip">✕</button>
-      <button class="swipe-btn like" id="btn-like" title="Play">▶</button>
+      <button class="swipe-btn nope" id="btn-nope">✕</button>
+      <button class="swipe-btn like" id="btn-like">▶</button>
     </div>
-    <p class="swipe-hint">drag or use the buttons</p>
+    <p class="swipe-hint">drag · arrow keys · buttons</p>
   </div>
 
   <!-- ░░ SL INSTRUCTIONS ░░ -->
@@ -33,102 +36,140 @@
       <h2>How to Play</h2>
       <div class="rule-row"><span class="rule-seq">S</span><span class="rule-arrow">→</span><span>Press <kbd>S</kbd></span></div>
       <div class="rule-row"><span class="rule-seq">L</span><span class="rule-arrow">→</span><span>Press <kbd>L</kbd></span></div>
-      <div class="rule-row"><span class="rule-seq">SS</span><span class="rule-arrow">→</span><span>Press the <em>opposite</em> → <kbd>L</kbd></span></div>
-      <div class="rule-row"><span class="rule-seq">LL</span><span class="rule-arrow">→</span><span>Press the <em>opposite</em> → <kbd>S</kbd></span></div>
-      <div class="rule-row"><span class="rule-seq">SL</span><span class="rule-arrow">→</span><span>Press <kbd>SPACE</kbd></span></div>
-      <div class="rule-row"><span class="rule-seq">LS</span><span class="rule-arrow">→</span><span>Press <kbd>SPACE</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">SS</span><span class="rule-arrow">→</span><span>Opposite → <kbd>L</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">LL</span><span class="rule-arrow">→</span><span>Opposite → <kbd>S</kbd></span></div>
+      <div class="rule-row"><span class="rule-seq">SL / LS</span><span class="rule-arrow">→</span><span>Press <kbd>SPACE</kbd></span></div>
     </div>
+    <div class="sl-options">
+      <button class="option-toggle" id="btn-ghost-toggle">
+        <span id="ghost-icon">👻</span> Ghost Mode <span id="ghost-state" class="option-state off">OFF</span>
+      </button>
+    </div>
+    <div class="sl-highscore-wrap">Best: <span id="sl-highscore">0</span></div>
     <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
-    <button class="btn-ghost" id="btn-back-sl">← Back</button>
+    <button class="btn-ghost-btn" id="btn-back-sl">← Back</button>
   </div>
 
   <!-- ░░ SL GAME ░░ -->
   <div id="screen-game" class="screen hidden">
     <div class="hud">
       <span class="hud-score" id="hud-score">Score: 0</span>
+      <span id="ghost-hud" class="ghost-hud hidden">👻</span>
       <span class="hud-level" id="hud-level">Level 1</span>
       <span class="hud-time"  id="hud-time">⏱ 30s</span>
     </div>
-    <div class="timer-bar-wrap">
-      <div class="timer-bar" id="timer-bar"></div>
-    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
     <div class="letter-tile" id="letter">SL</div>
-    <div class="key-hint" id="key-hint"></div>
+    <div class="sl-combo" id="sl-combo"></div>
   </div>
 
   <!-- ░░ SL END ░░ -->
   <div id="screen-end" class="screen hidden">
-    <p class="end-title lose" id="end-title">Game Over</p>
-    <p class="end-score">Final score: <span id="end-score-val">0</span></p>
+    <p class="end-title lose" id="end-title">Good Try!</p>
+    <p class="end-score">Score: <span id="end-score-val">0</span></p>
+    <p class="end-score" id="end-highscore-line" style="font-size:14px;color:#64748b"></p>
     <button class="btn-restart" id="btn-restart">Play Again</button>
-    <button class="btn-ghost"   id="btn-end-home">← Menu</button>
+    <button class="btn-ghost-btn" id="btn-end-home">← Menu</button>
   </div>
 
   <!-- ░░ SL WIN ░░ -->
   <div id="screen-win" class="screen hidden">
     <div class="trophy">🏆</div>
     <p class="end-title win">You Win!</p>
-    <p class="end-score">You reached score <span id="win-score-val">50</span>!</p>
+    <p class="end-score">Score: <span id="win-score-val">50</span></p>
     <button class="btn-restart" id="btn-restart-win">Play Again</button>
-    <button class="btn-ghost"   id="btn-win-home">← Menu</button>
+    <button class="btn-ghost-btn" id="btn-win-home">← Menu</button>
   </div>
 
   <!-- ░░ REACTION TEST ░░ -->
   <div id="screen-rt" class="screen hidden">
     <div class="rt-hud">
       <span id="rt-round-label">Round 1 / 5</span>
-      <button class="btn-ghost small" id="btn-rt-quit">✕ Quit</button>
+      <span id="rt-mode-badge" class="rt-mode-badge"></span>
+      <button class="btn-ghost-btn small" id="btn-rt-quit">✕</button>
     </div>
     <div class="rt-tile waiting" id="rt-tile">
       <span id="rt-tile-text">⏳</span>
       <span class="rt-tile-label" id="rt-tile-label">Get ready…</span>
     </div>
     <div class="rt-log" id="rt-log"></div>
-    <p class="rt-sub" id="rt-sub">Press <kbd>SPACE</kbd> when the tile turns <span style="color:#22c55e;font-weight:700">green</span></p>
+    <p class="rt-sub" id="rt-sub">Green = GO · Red = don't press!</p>
   </div>
 
-  <!-- ░░ REACTION RESULTS ░░ -->
+  <!-- ░░ RT RESULTS ░░ -->
   <div id="screen-rt-end" class="screen hidden">
-    <p class="end-title" style="color:#e2e8f0">Your Results</p>
+    <p class="end-title" style="color:#e2e8f0;font-size:30px">Your Results</p>
+    <div class="rt-chart" id="rt-chart"></div>
     <div class="rt-summary" id="rt-summary"></div>
-    <div class="rt-rating"  id="rt-rating"></div>
-    <button class="btn-restart" id="btn-rt-again">Try Again</button>
-    <button class="btn-ghost"   id="btn-rt-home">← Menu</button>
+    <div class="rt-rating" id="rt-rating"></div>
+    <div class="rt-end-btns">
+      <button class="btn-restart" id="btn-rt-again">Again</button>
+      <button class="btn-restart" id="btn-rt-1v1" style="background:linear-gradient(180deg,#8b5cf6,#6d28d9)">⚔️ 1v1</button>
+      <button class="btn-ghost-btn" id="btn-rt-home">← Menu</button>
+    </div>
+  </div>
+
+  <!-- ░░ RT 1v1 HANDOFF ░░ -->
+  <div id="screen-rt-handoff" class="screen hidden">
+    <p class="end-title" style="color:#a78bfa;font-size:36px">Player <span id="rt-handoff-num">2</span></p>
+    <p style="color:#64748b;font-size:15px;text-align:center">Pass the device<br>Don't peek at P1's score!</p>
+    <div class="rt-handoff-score" id="rt-handoff-preview"></div>
+    <button class="btn-restart" id="btn-rt-handoff-go">I'm Ready →</button>
+  </div>
+
+  <!-- ░░ RT 1v1 RESULTS ░░ -->
+  <div id="screen-rt-1v1" class="screen hidden">
+    <p class="end-title" style="color:#e2e8f0;font-size:28px">⚔️ 1v1 Results</p>
+    <div class="rt-1v1-grid" id="rt-1v1-grid"></div>
+    <div class="rt-1v1-winner" id="rt-1v1-winner"></div>
+    <button class="btn-restart" id="btn-rt-1v1-again">Play Again</button>
+    <button class="btn-ghost-btn" id="btn-rt-1v1-home">← Menu</button>
+  </div>
+
+  <!-- ░░ SUDOKU DIFFICULTY ░░ -->
+  <div id="screen-sdk-diff" class="screen hidden">
+    <h2 class="sdk-diff-title">Choose Difficulty</h2>
+    <div class="sdk-diff-cards">
+      <button class="sdk-diff-card" data-diff="Easy">
+        <span class="sdk-diff-emoji">🌱</span>
+        <span class="sdk-diff-name">Easy</span>
+        <span class="sdk-diff-clues">38 clues given</span>
+      </button>
+      <button class="sdk-diff-card" data-diff="Medium">
+        <span class="sdk-diff-emoji">🔥</span>
+        <span class="sdk-diff-name">Medium</span>
+        <span class="sdk-diff-clues">30 clues given</span>
+      </button>
+      <button class="sdk-diff-card" data-diff="Hard">
+        <span class="sdk-diff-emoji">💀</span>
+        <span class="sdk-diff-name">Hard</span>
+        <span class="sdk-diff-clues">24 clues given</span>
+      </button>
+    </div>
+    <button class="btn-ghost-btn" id="btn-sdk-diff-back">← Back</button>
   </div>
 
   <!-- ░░ SUDOKU ░░ -->
   <div id="screen-sudoku" class="screen hidden">
     <div class="sdk-header">
       <div class="sdk-meta">
-        <span class="sdk-diff" id="sdk-diff">Medium</span>
+        <span class="sdk-diff-badge" id="sdk-diff">Medium</span>
         <span class="sdk-timer" id="sdk-timer">0:00</span>
         <span class="sdk-mistakes" id="sdk-mistakes">✕ 0 / 3</span>
       </div>
-      <button class="btn-ghost small" id="btn-sdk-quit">✕ Quit</button>
+      <button class="btn-ghost-btn small" id="btn-sdk-quit">✕ Quit</button>
     </div>
-
     <div class="sdk-board" id="sdk-board"></div>
-
     <div class="sdk-controls">
-      <button class="sdk-tool" id="btn-sdk-notes" title="Toggle notes mode">
-        <span class="sdk-tool-icon">✏️</span>
-        <span class="sdk-tool-label">Notes</span>
-      </button>
-      <button class="sdk-tool" id="btn-sdk-erase" title="Erase cell">
-        <span class="sdk-tool-icon">⌫</span>
-        <span class="sdk-tool-label">Erase</span>
-      </button>
+      <button class="sdk-tool" id="btn-sdk-notes">✏️ <span>Notes</span></button>
+      <button class="sdk-tool" id="btn-sdk-autonotes">⚡ <span>Auto</span></button>
+      <button class="sdk-tool" id="btn-sdk-erase">⌫ <span>Erase</span></button>
     </div>
-
     <div class="sdk-numpad" id="sdk-numpad">
-      <button class="sdk-num" data-n="1">1</button>
-      <button class="sdk-num" data-n="2">2</button>
-      <button class="sdk-num" data-n="3">3</button>
-      <button class="sdk-num" data-n="4">4</button>
-      <button class="sdk-num" data-n="5">5</button>
-      <button class="sdk-num" data-n="6">6</button>
-      <button class="sdk-num" data-n="7">7</button>
-      <button class="sdk-num" data-n="8">8</button>
+      <button class="sdk-num" data-n="1">1</button><button class="sdk-num" data-n="2">2</button>
+      <button class="sdk-num" data-n="3">3</button><button class="sdk-num" data-n="4">4</button>
+      <button class="sdk-num" data-n="5">5</button><button class="sdk-num" data-n="6">6</button>
+      <button class="sdk-num" data-n="7">7</button><button class="sdk-num" data-n="8">8</button>
       <button class="sdk-num" data-n="9">9</button>
     </div>
   </div>
@@ -136,22 +177,21 @@
   <!-- ░░ SUDOKU WIN ░░ -->
   <div id="screen-sudoku-win" class="screen hidden">
     <div class="trophy">🎉</div>
-    <p class="end-title win">Solved!</p>
-    <p class="end-score">Time: <span id="sdk-win-time">0:00</span></p>
-    <p class="end-score" style="margin-top:-8px">Mistakes: <span id="sdk-win-mistakes">0</span></p>
+    <p class="end-title win" id="sdk-win-title">Solved!</p>
+    <p class="end-score">Time: <span id="sdk-win-time">0:00</span> · Mistakes: <span id="sdk-win-mistakes">0</span></p>
+    <div id="sdk-daily-share" class="hidden" style="display:flex;gap:8px;align-items:center;font-size:13px;color:#a78bfa"></div>
     <button class="btn-restart" id="btn-sdk-again">Play Again</button>
-    <button class="btn-ghost"   id="btn-sdk-win-home">← Menu</button>
+    <button class="btn-ghost-btn" id="btn-sdk-win-home">← Menu</button>
   </div>
 
-  <!-- ░░ SUDOKU GAME OVER ░░ -->
+  <!-- ░░ SUDOKU FAIL ░░ -->
   <div id="screen-sudoku-end" class="screen hidden">
     <p class="end-title lose">Too many mistakes!</p>
-    <p class="end-score" style="margin-top:4px;font-size:15px;color:#64748b">3 mistakes = game over</p>
+    <p style="color:#64748b;font-size:14px">3 strikes and you're out</p>
     <button class="btn-restart" id="btn-sdk-retry">Try Again</button>
-    <button class="btn-ghost"   id="btn-sdk-end-home">← Menu</button>
+    <button class="btn-ghost-btn" id="btn-sdk-end-home">← Menu</button>
   </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
-
