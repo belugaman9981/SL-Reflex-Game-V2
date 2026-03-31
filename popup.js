@@ -152,7 +152,7 @@ function flyOff(dir) {
   topCard.style.transform=`translateX(${dir==="right"?FLY:-FLY}px) rotate(${dir==="right"?MAX_ROT:-MAX_ROT}deg)`;
   topCard.style.opacity="0";
   backCard.style.transition="transform .38s"; backCard.style.transform="scale(1) translateY(0)";
-  setTimeout(() => { const m=MODES[deckIdx%MODES.length]; deckIdx++; dir==="right"?launch(m.id):renderDeck(); }, 300);
+  setTimeout(() => { const m=MODES[deckIdx%MODES.length]; deckIdx++; dir==="right"?launch(m.id):renderDeck(); }, 380);
 }
 function snapBack() {
   topCard.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)"; topCard.style.transform="";
@@ -245,7 +245,7 @@ function slNext() {
   clearTimeout(slGhostTO);
   if (slGhost) slGhostTO=setTimeout(()=>{ if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");} },250);
 }
-function slFlash(cls) { letterEl.classList.add(cls); setTimeout(()=>letterEl.classList.remove(cls),150); }
+function slFlash(cls) { letterEl.classList.add(cls); setTimeout(()=>letterEl.classList.remove(cls),260); }
 function updateCombo() {
   if (slCombo>=3) {
     comboEl.textContent=`🔥 ${slCombo}x combo`;
@@ -260,7 +260,7 @@ function startSL() {
   letterEl.textContent="GO!"; letterEl.className="letter-tile";
   comboEl.textContent=""; comboEl.className="sl-combo";
   updateHud(); startSLTimer();
-  setTimeout(()=>{ slNext(); startIdle(); },400);
+  setTimeout(()=>{ slNext(); startIdle(); },600);
 }
 
 const SL_LEVEL_AT={10:2,20:3,30:4,40:5};
@@ -311,7 +311,7 @@ document.addEventListener("keydown", e => {
     updateHud(); slNext(); startIdle();
   } else {
     slCombo=0; updateCombo(); SFX.wrong(); slFlash("wrong");
-    setTimeout(()=>slEnd("wrong"),200);
+    setTimeout(()=>slEnd("wrong"),280);
   }
 });
 
