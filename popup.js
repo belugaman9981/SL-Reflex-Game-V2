@@ -306,7 +306,7 @@ document.addEventListener("keydown", e => {
     if (SL_LEVEL_AT[slScore]) {
       slLevel=SL_LEVEL_AT[slScore]; letterEl.textContent=`LEVEL ${slLevel}!`; letterEl.className="letter-tile";
       updateHud(); stopIdle(); SFX.levelup();
-      setTimeout(()=>{ startSLTimer(); slNext(); startIdle(); },400); return;
+      setTimeout(()=>{ startSLTimer(); slNext(); startIdle(); },700); return;
     }
     updateHud(); slNext(); startIdle();
   } else {
