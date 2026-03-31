@@ -784,3 +784,4 @@ function sdkUpdateNumpad() {
   for(let r=0;r<9;r++) for(let c=0;c<9;c++) if(sdkPlayer[r][c]) cnt[sdkPlayer[r][c]]++;
   document.querySelectorAll(".sdk-num").forEach(btn=>{ const n=Number(btn.dataset.n); btn.classList.toggle("dim",cnt[n]>=9); });
 }
+
