@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -55,6 +54,8 @@ body {
   position:absolute; inset:0; border-radius:22px; padding:24px 22px 20px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:8px; overflow:hidden; cursor:grab; will-change:transform;
+  background:#0d1829; /* solid fallback so cards never bleed through */
+  isolation:isolate;
 }
 .swipe-card:active{cursor:grabbing}
 #swipe-back{transform:scale(.92) translateY(10px);transition:transform .25s;z-index:1}
@@ -245,4 +246,3 @@ body.notes-mode .sdk-num:not(.dim){border-color:rgba(251,191,36,.35);color:#fbbf
 .sdk-num:hover{background:rgba(255,255,255,.12)}
 .sdk-num:active{transform:scale(.92)}
 .sdk-num.dim{opacity:.25;pointer-events:none}
-

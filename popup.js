@@ -1,4 +1,3 @@
-
 /* ═══════════════════════════════════════════════════
    SCREENS
 ═══════════════════════════════════════════════════ */
@@ -116,11 +115,18 @@ const MODES = [
 
 let deckIdx=0, dragging=false, dragX=0, dragStart=0, ptId=null;
 const topCard=document.getElementById("swipe-top"), backCard=document.getElementById("swipe-back");
-const stampP=document.getElementById("stamp-play"), stampS=document.getElementById("stamp-skip");
+function getStampP() { return document.getElementById("stamp-play"); }
+function getStampS() { return document.getElementById("stamp-skip"); }
 const THRESH=72, MAX_ROT=18, FLY=520;
 
 function renderCard(el, m) {
-  Array.from(el.children).forEach(c => { if (!c.classList.contains("stamp")) c.remove(); });
+  // Fully clear and rebuild — no leftover children
+  el.innerHTML = "";
+  if (el === topCard) {
+    const sp = document.createElement("div"); sp.className="stamp stamp-play"; sp.id="stamp-play"; sp.textContent="PLAY";
+    const ss = document.createElement("div"); ss.className="stamp stamp-skip"; ss.id="stamp-skip"; ss.textContent="SKIP";
+    el.appendChild(sp); el.appendChild(ss);
+  }
   el.style.background = m.bg;
   el.style.boxShadow  = `inset 0 0 0 2px rgba(255,255,255,.08),0 22px 56px ${m.glow},0 8px 22px rgba(0,0,0,.5)`;
   const f = document.createDocumentFragment();
@@ -131,21 +137,21 @@ function renderCard(el, m) {
   const tags = document.createElement("div"); tags.className = "card-tags";
   m.tags.forEach(t => { const s=document.createElement("span"); s.className="card-tag"; s.textContent=t; s.style.borderColor=m.accent+"55"; s.style.color=m.accent; tags.appendChild(s); });
   f.appendChild(tags);
-  el.insertBefore(f, el.firstChild);
+  el.appendChild(f);
 }
 function renderDeck() {
   renderCard(backCard, MODES[(deckIdx+1)%MODES.length]);
   renderCard(topCard,  MODES[deckIdx%MODES.length]);
   topCard.style.cssText  = ""; backCard.style.transform="scale(.92) translateY(10px)";
-  stampP.style.opacity=stampS.style.opacity="0";
-  // Mark daily card if done
-  const daily = document.querySelector(".card-name");
+  // Re-apply solid base background after cssText reset
+  topCard.style.background = MODES[deckIdx%MODES.length].bg;
+  getStampP().style.opacity = getStampS().style.opacity = "0";
 }
 function setDrag(dx) {
   const r = Math.min(Math.abs(dx)/150,1);
   topCard.style.transform=`translateX(${dx}px) rotate(${dx/150*MAX_ROT}deg)`;
-  stampP.style.opacity = dx>0?String(Math.min(r*1.4,1)):"0";
-  stampS.style.opacity = dx<0?String(Math.min(r*1.4,1)):"0";
+  getStampP().style.opacity = dx>0?String(Math.min(r*1.4,1)):"0";
+  getStampS().style.opacity = dx<0?String(Math.min(r*1.4,1)):"0";
   backCard.style.transform=`scale(${.92+r*.08}) translateY(${10-r*10}px)`;
 }
 function flyOff(dir) {
@@ -158,7 +164,7 @@ function flyOff(dir) {
 function snapBack() {
   topCard.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)"; topCard.style.transform="";
   backCard.style.transition="transform .35s"; backCard.style.transform="scale(.92) translateY(10px)";
-  stampP.style.opacity=stampS.style.opacity="0";
+  getStampP().style.opacity=getStampS().style.opacity="0";
 }
 function launch(id) {
   if      (id==="sl")     { refreshSLScreen(); showScreen("start"); }
@@ -784,4 +790,3 @@ function sdkUpdateNumpad() {
   for(let r=0;r<9;r++) for(let c=0;c<9;c++) if(sdkPlayer[r][c]) cnt[sdkPlayer[r][c]]++;
   document.querySelectorAll(".sdk-num").forEach(btn=>{ const n=Number(btn.dataset.n); btn.classList.toggle("dim",cnt[n]>=9); });
 }
-
