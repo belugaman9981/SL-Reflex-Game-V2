@@ -8,7 +8,6 @@
 </head>
 <body>
 
-  <!-- Achievement toast (overlay) -->
   <div id="ach-toast" class="ach-toast"></div>
 
   <!-- ░░ HOME ░░ -->
@@ -42,10 +41,18 @@
     </div>
     <div class="sl-options">
       <button class="option-toggle" id="btn-ghost-toggle">
-        <span id="ghost-icon">👻</span> Ghost Mode <span id="ghost-state" class="option-state off">OFF</span>
+        👻 Ghost <span id="ghost-state" class="option-state off">OFF</span>
       </button>
+      <div class="time-select">
+        <span class="time-label">Time</span>
+        <button class="time-btn" data-t="30" id="tbtn-30">30s</button>
+        <button class="time-btn active" data-t="60" id="tbtn-60">60s</button>
+        <button class="time-btn" data-t="99" id="tbtn-99">∞</button>
+      </div>
     </div>
-    <div class="sl-highscore-wrap">Best: <span id="sl-highscore">0</span></div>
+    <div class="sl-highscore-wrap">
+      Personal best: <span id="sl-highscore">0</span>
+    </div>
     <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
     <button class="btn-ghost-btn" id="btn-back-sl">← Back</button>
   </div>
@@ -56,28 +63,53 @@
       <span class="hud-score" id="hud-score">Score: 0</span>
       <span id="ghost-hud" class="ghost-hud hidden">👻</span>
       <span class="hud-level" id="hud-level">Level 1</span>
-      <span class="hud-time"  id="hud-time">⏱ 30s</span>
+      <span class="hud-time"  id="hud-time">⏱ 60s</span>
     </div>
     <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
     <div class="letter-tile" id="letter">SL</div>
     <div class="sl-combo" id="sl-combo"></div>
   </div>
 
-  <!-- ░░ SL END ░░ -->
-  <div id="screen-end" class="screen hidden">
-    <p class="end-title lose" id="end-title">Good Try!</p>
-    <p class="end-score">Score: <span id="end-score-val">0</span></p>
-    <p class="end-score" id="end-highscore-line" style="font-size:14px;color:#64748b"></p>
-    <button class="btn-restart" id="btn-restart">Play Again</button>
-    <button class="btn-ghost-btn" id="btn-end-home">← Menu</button>
+  <!-- ░░ NAME ENTRY (after game over) ░░ -->
+  <div id="screen-name" class="screen hidden">
+    <p class="end-title" id="name-title" style="font-size:32px;color:#e2e8f0">Game Over</p>
+    <p class="end-score">Score: <span id="name-score-val">0</span> · Level <span id="name-level-val">1</span></p>
+    <p id="name-new-best" class="new-best hidden">🎉 New personal best!</p>
+
+    <div class="name-form">
+      <input type="text" id="name-input" class="name-input" maxlength="16"
+             placeholder="Your name for leaderboard" autocomplete="off" spellcheck="false"/>
+      <button class="btn-restart" id="btn-submit-score">Submit Score 🌍</button>
+      <button class="btn-ghost-btn" id="btn-skip-submit">Skip</button>
+    </div>
+  </div>
+
+  <!-- ░░ SL LEADERBOARD ░░ -->
+  <div id="screen-leaderboard" class="screen hidden">
+    <div class="lb-header">
+      <h2 class="lb-title">🌍 World Rankings</h2>
+      <button class="btn-ghost-btn small" id="btn-lb-close">✕</button>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" id="lb-tab-all" data-tab="all">All Time</button>
+      <button class="lb-tab" id="lb-tab-today" data-tab="today">Today</button>
+    </div>
+    <div class="lb-list" id="lb-list">
+      <div class="lb-loading">Loading…</div>
+    </div>
+    <div class="lb-your-rank" id="lb-your-rank"></div>
+    <div class="lb-footer">
+      <button class="btn-restart" id="btn-lb-play">Play Again</button>
+      <button class="btn-ghost-btn" id="btn-lb-home">← Menu</button>
+    </div>
   </div>
 
   <!-- ░░ SL WIN ░░ -->
   <div id="screen-win" class="screen hidden">
     <div class="trophy">🏆</div>
-    <p class="end-title win">You Win!</p>
-    <p class="end-score">Score: <span id="win-score-val">50</span></p>
-    <button class="btn-restart" id="btn-restart-win">Play Again</button>
+    <p class="end-title win">Legendary!</p>
+    <p class="end-score">Score: <span id="win-score-val">0</span> · Level 10</p>
+    <button class="btn-restart" id="btn-restart-win">Keep Going</button>
     <button class="btn-ghost-btn" id="btn-win-home">← Menu</button>
   </div>
 
@@ -98,7 +130,7 @@
 
   <!-- ░░ RT RESULTS ░░ -->
   <div id="screen-rt-end" class="screen hidden">
-    <p class="end-title" style="color:#e2e8f0;font-size:30px">Your Results</p>
+    <p class="end-title" style="color:#e2e8f0;font-size:28px">Your Results</p>
     <div class="rt-chart" id="rt-chart"></div>
     <div class="rt-summary" id="rt-summary"></div>
     <div class="rt-rating" id="rt-rating"></div>
@@ -111,15 +143,15 @@
 
   <!-- ░░ RT 1v1 HANDOFF ░░ -->
   <div id="screen-rt-handoff" class="screen hidden">
-    <p class="end-title" style="color:#a78bfa;font-size:36px">Player <span id="rt-handoff-num">2</span></p>
-    <p style="color:#64748b;font-size:15px;text-align:center">Pass the device<br>Don't peek at P1's score!</p>
+    <p class="end-title" style="color:#a78bfa;font-size:34px">Player <span id="rt-handoff-num">2</span></p>
+    <p style="color:#64748b;font-size:14px;text-align:center">Pass the device — don't peek!</p>
     <div class="rt-handoff-score" id="rt-handoff-preview"></div>
     <button class="btn-restart" id="btn-rt-handoff-go">I'm Ready →</button>
   </div>
 
   <!-- ░░ RT 1v1 RESULTS ░░ -->
   <div id="screen-rt-1v1" class="screen hidden">
-    <p class="end-title" style="color:#e2e8f0;font-size:28px">⚔️ 1v1 Results</p>
+    <p class="end-title" style="color:#e2e8f0;font-size:26px">⚔️ 1v1 Results</p>
     <div class="rt-1v1-grid" id="rt-1v1-grid"></div>
     <div class="rt-1v1-winner" id="rt-1v1-winner"></div>
     <button class="btn-restart" id="btn-rt-1v1-again">Play Again</button>
@@ -130,21 +162,9 @@
   <div id="screen-sdk-diff" class="screen hidden">
     <h2 class="sdk-diff-title">Choose Difficulty</h2>
     <div class="sdk-diff-cards">
-      <button class="sdk-diff-card" data-diff="Easy">
-        <span class="sdk-diff-emoji">🌱</span>
-        <span class="sdk-diff-name">Easy</span>
-        <span class="sdk-diff-clues">38 clues given</span>
-      </button>
-      <button class="sdk-diff-card" data-diff="Medium">
-        <span class="sdk-diff-emoji">🔥</span>
-        <span class="sdk-diff-name">Medium</span>
-        <span class="sdk-diff-clues">30 clues given</span>
-      </button>
-      <button class="sdk-diff-card" data-diff="Hard">
-        <span class="sdk-diff-emoji">💀</span>
-        <span class="sdk-diff-name">Hard</span>
-        <span class="sdk-diff-clues">24 clues given</span>
-      </button>
+      <button class="sdk-diff-card" data-diff="Easy"><span class="sdk-diff-emoji">🌱</span><span class="sdk-diff-name">Easy</span><span class="sdk-diff-clues">38 clues</span></button>
+      <button class="sdk-diff-card" data-diff="Medium"><span class="sdk-diff-emoji">🔥</span><span class="sdk-diff-name">Medium</span><span class="sdk-diff-clues">30 clues</span></button>
+      <button class="sdk-diff-card" data-diff="Hard"><span class="sdk-diff-emoji">💀</span><span class="sdk-diff-name">Hard</span><span class="sdk-diff-clues">24 clues</span></button>
     </div>
     <button class="btn-ghost-btn" id="btn-sdk-diff-back">← Back</button>
   </div>
