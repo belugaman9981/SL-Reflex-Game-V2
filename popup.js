@@ -1,27 +1,38 @@
-
 /* ═══════════════════════════════════════════════════
    ⚙️  SUPABASE CONFIG — paste your values here
 ═══════════════════════════════════════════════════ */
-const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-const SUPABASE_KEY = "YOUR_ANON_PUBLIC_KEY";
+const SUPABASE_URL = "https://jqlvryoppbhmdzjdxnjq.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxbHZyeW9wcGJobWR6amR4bmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODc5ODIsImV4cCI6MjA5MDY2Mzk4Mn0.yfKVfiJIW0bQBZ8jb-93AqgXUXQstAfAR5Z4YaVQtnY";
 
 /* ═══════════════════════════════════════════════════
    SUPABASE REST HELPERS
 ═══════════════════════════════════════════════════ */
 async function dbInsert(table, row) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: "POST",
-    headers: { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}`, "Prefer":"return=minimal" },
-    body: JSON.stringify(row),
-  });
-  return r.ok;
+  if (SUPABASE_URL.includes("YOUR_PROJECT_ID")) return { ok:false, reason:"not_configured" };
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}`, "Prefer":"return=minimal" },
+      body: JSON.stringify(row),
+    });
+    if (!r.ok) {
+      const body = await r.text().catch(()=>"");
+      return { ok:false, reason:`http_${r.status}`, body };
+    }
+    return { ok:true };
+  } catch(e) {
+    return { ok:false, reason:"network", message:e.message };
+  }
 }
 async function dbSelect(table, params) {
-  const qs = new URLSearchParams(params).toString();
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${qs}`, {
-    headers: { "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}` },
-  });
-  return r.ok ? r.json() : [];
+  if (SUPABASE_URL.includes("YOUR_PROJECT_ID")) return [];
+  try {
+    const qs = new URLSearchParams(params).toString();
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${qs}`, {
+      headers: { "apikey":SUPABASE_KEY, "Authorization":`Bearer ${SUPABASE_KEY}` },
+    });
+    return r.ok ? r.json() : [];
+  } catch { return []; }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -358,14 +369,21 @@ async function submitScore() {
   SFX.submit();
   const btn=document.getElementById("btn-submit-score");
   btn.textContent="Submitting…"; btn.disabled=true;
-  const ok = await dbInsert("sl_scores",{ name, score:slEndScore, level:slEndLevel });
+  const res = await dbInsert("sl_scores",{ name, score:slEndScore, level:slEndLevel });
   btn.disabled=false;
-  if(ok) {
+  if(res.ok) {
     unlockAch("first_score");
     await openLeaderboard(name, slEndScore);
   } else {
-    btn.textContent="Failed — retry?";
-    setTimeout(()=>{ btn.textContent="Submit Score 🌍"; },2000);
+    let msg = "Failed — retry?";
+    if (res.reason === "not_configured")  msg = "⚠️ Add Supabase keys to popup.js";
+    else if (res.reason === "http_401")   msg = "⚠️ Wrong API key";
+    else if (res.reason === "http_404")   msg = "⚠️ Table not found — run the SQL";
+    else if (res.reason === "http_403")   msg = "⚠️ RLS blocking — check policies";
+    else if (res.reason === "network")    msg = "⚠️ Network error — check URL";
+    else if (res.reason)                  msg = `⚠️ Error: ${res.reason}`;
+    btn.textContent = msg;
+    setTimeout(()=>{ btn.textContent="Submit Score 🌍"; btn.disabled=false; }, 3500);
   }
 }
 
@@ -601,4 +619,3 @@ function sdkRefreshCell(r,c){const el=sdkBoardEl.querySelector(`[data-r="${r}"][
 function sdkCheckWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]!==sdkBoard[r][c])return false;return true;}
 function sdkWin(){sdkStopTimer();SFX.sdkWin();if(sdkMistakes===0)unlockAch("flawless");if(sdkIsDaily)markDailyDone();document.getElementById("sdk-win-time").textContent=sdkTimerEl.textContent;document.getElementById("sdk-win-mistakes").textContent=sdkMistakes;document.getElementById("sdk-win-title").textContent=sdkIsDaily?"Daily Solved! 🗓️":"Solved!";const shareDiv=document.getElementById("sdk-daily-share");if(sdkIsDaily){shareDiv.classList.remove("hidden");shareDiv.style.display="flex";shareDiv.innerHTML=`<button class="btn-ghost-btn" id="btn-share">📋 Share</button>`;document.getElementById("btn-share").addEventListener("click",()=>{const txt=`I solved today's Daily Sudoku in ${sdkTimerEl.textContent} with ${sdkMistakes} mistake${sdkMistakes!==1?"s":""}! 🔢`;navigator.clipboard?.writeText(txt).then(()=>{document.getElementById("btn-share").textContent="✓ Copied!";});});}else{shareDiv.classList.add("hidden");shareDiv.style.display="none";}showScreen("sudoku-win");}
 function sdkUpdateNumpad(){const cnt=Array(10).fill(0);for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c])cnt[sdkPlayer[r][c]]++;document.querySelectorAll(".sdk-num").forEach(btn=>{const n=Number(btn.dataset.n);btn.classList.toggle("dim",cnt[n]>=9);});}
-
