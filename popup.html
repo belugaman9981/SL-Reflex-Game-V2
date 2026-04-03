@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,14 +45,12 @@
       </button>
       <div class="time-select">
         <span class="time-label">Time</span>
-        <button class="time-btn" data-t="30" id="tbtn-30">30s</button>
-        <button class="time-btn active" data-t="60" id="tbtn-60">60s</button>
-        <button class="time-btn" data-t="99" id="tbtn-99">∞</button>
+        <button class="time-btn" data-t="30">30s</button>
+        <button class="time-btn active" data-t="60">60s</button>
+        <button class="time-btn" data-t="99">∞</button>
       </div>
     </div>
-    <div class="sl-highscore-wrap">
-      Personal best: <span id="sl-highscore">0</span>
-    </div>
+    <div class="sl-highscore-wrap">Personal best: <span id="sl-highscore">0</span></div>
     <p class="start-message">Press <kbd>SPACE</kbd> to start 🚀</p>
     <button class="btn-ghost-btn" id="btn-back-sl">← Back</button>
   </div>
@@ -63,7 +60,7 @@
     <div class="hud">
       <span class="hud-score" id="hud-score">Score: 0</span>
       <span id="ghost-hud" class="ghost-hud hidden">👻</span>
-      <span class="hud-level" id="hud-level">Level 1</span>
+      <span class="hud-level" id="hud-level">Lvl 1</span>
       <span class="hud-time"  id="hud-time">⏱ 60s</span>
     </div>
     <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
@@ -71,33 +68,42 @@
     <div class="sl-combo" id="sl-combo"></div>
   </div>
 
-  <!-- ░░ NAME ENTRY (after game over) ░░ -->
+  <!-- ░░ NAME + FLAG ENTRY ░░ -->
   <div id="screen-name" class="screen hidden">
-    <p class="end-title" id="name-title" style="font-size:32px;color:#e2e8f0">Game Over</p>
+    <p class="end-title" id="name-title" style="font-size:30px;color:#e2e8f0">Game Over</p>
     <p class="end-score">Score: <span id="name-score-val">0</span> · Level <span id="name-level-val">1</span></p>
     <p id="name-new-best" class="new-best hidden">🎉 New personal best!</p>
 
     <div class="name-form">
+      <!-- Flag picker -->
+      <div class="flag-section">
+        <p class="flag-label">Your flag</p>
+        <div class="flag-selected" id="flag-selected">🌍</div>
+        <div class="flag-grid" id="flag-grid"></div>
+      </div>
       <input type="text" id="name-input" class="name-input" maxlength="16"
-             placeholder="Your name for leaderboard" autocomplete="off" spellcheck="false"/>
-      <button class="btn-restart" id="btn-submit-score">Submit Score 🌍</button>
+             placeholder="Your name" autocomplete="off" spellcheck="false"/>
+      <button class="btn-restart" id="btn-submit-score">Submit to World 🌍</button>
       <button class="btn-ghost-btn" id="btn-skip-submit">Skip</button>
     </div>
   </div>
 
-  <!-- ░░ SL LEADERBOARD ░░ -->
+  <!-- ░░ ALL-GAMES LEADERBOARD ░░ -->
   <div id="screen-leaderboard" class="screen hidden">
     <div class="lb-header">
       <h2 class="lb-title">🌍 World Rankings</h2>
       <button class="btn-ghost-btn small" id="btn-lb-close">✕</button>
     </div>
-    <div class="lb-tabs">
-      <button class="lb-tab active" id="lb-tab-all" data-tab="all">All Time</button>
-      <button class="lb-tab" id="lb-tab-today" data-tab="today">Today</button>
+    <div class="lb-game-tabs">
+      <button class="lb-game-tab active" data-game="sl">🧠 SL</button>
+      <button class="lb-game-tab" data-game="rt">⚡ RT</button>
+      <button class="lb-game-tab" data-game="sudoku">🔢 Sudoku</button>
     </div>
-    <div class="lb-list" id="lb-list">
-      <div class="lb-loading">Loading…</div>
+    <div class="lb-time-tabs">
+      <button class="lb-tab active" data-tab="all">All Time</button>
+      <button class="lb-tab" data-tab="today">Today</button>
     </div>
+    <div class="lb-list" id="lb-list"><div class="lb-loading">Loading…</div></div>
     <div class="lb-your-rank" id="lb-your-rank"></div>
     <div class="lb-footer">
       <button class="btn-restart" id="btn-lb-play">Play Again</button>
@@ -131,12 +137,13 @@
 
   <!-- ░░ RT RESULTS ░░ -->
   <div id="screen-rt-end" class="screen hidden">
-    <p class="end-title" style="color:#e2e8f0;font-size:28px">Your Results</p>
+    <p class="end-title" style="color:#e2e8f0;font-size:26px">Your Results</p>
     <div class="rt-chart" id="rt-chart"></div>
     <div class="rt-summary" id="rt-summary"></div>
     <div class="rt-rating" id="rt-rating"></div>
     <div class="rt-end-btns">
       <button class="btn-restart" id="btn-rt-again">Again</button>
+      <button class="btn-restart" id="btn-rt-submit" style="background:linear-gradient(180deg,#059669,#047857)">Submit 🌍</button>
       <button class="btn-restart" id="btn-rt-1v1" style="background:linear-gradient(180deg,#8b5cf6,#6d28d9)">⚔️ 1v1</button>
       <button class="btn-ghost-btn" id="btn-rt-home">← Menu</button>
     </div>
@@ -144,7 +151,7 @@
 
   <!-- ░░ RT 1v1 HANDOFF ░░ -->
   <div id="screen-rt-handoff" class="screen hidden">
-    <p class="end-title" style="color:#a78bfa;font-size:34px">Player <span id="rt-handoff-num">2</span></p>
+    <p class="end-title" style="color:#a78bfa;font-size:32px">Player <span id="rt-handoff-num">2</span></p>
     <p style="color:#64748b;font-size:14px;text-align:center">Pass the device — don't peek!</p>
     <div class="rt-handoff-score" id="rt-handoff-preview"></div>
     <button class="btn-restart" id="btn-rt-handoff-go">I'm Ready →</button>
@@ -152,7 +159,7 @@
 
   <!-- ░░ RT 1v1 RESULTS ░░ -->
   <div id="screen-rt-1v1" class="screen hidden">
-    <p class="end-title" style="color:#e2e8f0;font-size:26px">⚔️ 1v1 Results</p>
+    <p class="end-title" style="color:#e2e8f0;font-size:24px">⚔️ 1v1 Results</p>
     <div class="rt-1v1-grid" id="rt-1v1-grid"></div>
     <div class="rt-1v1-winner" id="rt-1v1-winner"></div>
     <button class="btn-restart" id="btn-rt-1v1-again">Play Again</button>
@@ -200,7 +207,8 @@
     <div class="trophy">🎉</div>
     <p class="end-title win" id="sdk-win-title">Solved!</p>
     <p class="end-score">Time: <span id="sdk-win-time">0:00</span> · Mistakes: <span id="sdk-win-mistakes">0</span></p>
-    <div id="sdk-daily-share" class="hidden" style="display:flex;gap:8px;align-items:center;font-size:13px;color:#a78bfa"></div>
+    <div id="sdk-daily-share" class="hidden" style="display:flex;gap:8px;align-items:center"></div>
+    <button class="btn-restart" id="btn-sdk-submit" style="background:linear-gradient(180deg,#059669,#047857)">Submit to World 🌍</button>
     <button class="btn-restart" id="btn-sdk-again">Play Again</button>
     <button class="btn-ghost-btn" id="btn-sdk-win-home">← Menu</button>
   </div>
@@ -216,4 +224,3 @@
   <script src="popup.js"></script>
 </body>
 </html>
-
