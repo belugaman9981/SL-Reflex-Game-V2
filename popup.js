@@ -475,7 +475,6 @@ function sdkWin(){
   showScreen("sudoku-win");
 }
 
-
 function sdkSubmitScore(){
   const m=Math.floor(sdkSecs/60),s=sdkSecs%60;
   const timeStr=`${m}:${String(s).padStart(2,"0")}`;
