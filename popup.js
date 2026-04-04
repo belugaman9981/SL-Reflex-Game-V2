@@ -262,6 +262,7 @@ function lbMetaLabel(game, meta) {
   if (game==="sudoku") return `${meta.mistakes||0} ✕ · ${meta.difficulty||""}`;
   return "";
 }
+
 // Lower is better for RT and Sudoku
 function lbOrderParam(game) {
   return game==="sl" ? "score.desc" : "score.asc";
