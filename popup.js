@@ -321,7 +321,7 @@ function startSLTimer(){stopSLTimer();if(slSelectedTime===99){updateHud();return
 function startIdle(){clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
 function stopIdle() {clearTimeout(slIdle);}
 function slRandom(){const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
-const SL_KEYS={S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
+const    SL_KEYS={S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
 function slNext(){slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
 function slFlash(cls){letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
 function updateCombo(){if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
