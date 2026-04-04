@@ -108,7 +108,7 @@ const ACH={
   flawless:    {icon:"✨",label:"Flawless",      desc:"Sudoku with 0 mistakes"},
   cyborg:      {icon:"🤖",label:"Cyborg",        desc:"Reaction under 200ms"},
   daily_done:  {icon:"📅",label:"Daily",         desc:"Complete daily sudoku"},
-  hot_seat:    {icon:"⚔️",label:"1v1 Champ",    desc:"Win a 1v1 match"},
+  hot_seat:    {icon:"⚔️",label:"1v1 Champ",     desc:"Win a 1v1 match"},
   centurion:   {icon:"💯",label:"Centurion",     desc:"Score 100+ in SL"},
   world_top10: {icon:"🌍",label:"World Top 10",  desc:"Appear in top 10"},
 };
