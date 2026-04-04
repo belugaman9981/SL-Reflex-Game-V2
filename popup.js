@@ -255,6 +255,7 @@ function lbScoreLabel(game, score, meta) {
   }
   return score;
 }
+
 function lbMetaLabel(game, meta) {
   if (!meta) return "";
   if (game==="sl")     return `Lvl ${meta.level||1}`;
