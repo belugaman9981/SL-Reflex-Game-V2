@@ -175,10 +175,10 @@ function flyOff(dir){topCard.style.transition="transform .38s cubic-bezier(.25,.
 function snapBack(){topCard.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";topCard.style.transform="";backCard.style.transition="transform .35s";backCard.style.transform="scale(.92) translateY(10px)";getStampP().style.opacity=getStampS().style.opacity="0";}
 function launch(id){if(id==="sl"){refreshSLScreen();showScreen("start");}else if(id==="rt")startRT(false);else if(id==="sudoku")showScreen("sdk-diff");else if(id==="daily")startDailyChallenge();else if(id==="lb")openLeaderboard("sl",null,null);}
 
-topCard.addEventListener("pointerdown",e=>{dragging=true;dragStart=e.clientX;dragX=0;ptId=e.pointerId;topCard.setPointerCapture(e.pointerId);topCard.style.transition="";});
-topCard.addEventListener("pointermove",e=>{if(!dragging||e.pointerId!==ptId)return;dragX=e.clientX-dragStart;setDrag(dragX);});
-topCard.addEventListener("pointerup",  e=>{if(!dragging||e.pointerId!==ptId)return;dragging=false;dragX>THRESH?flyOff("right"):dragX<-THRESH?flyOff("left"):snapBack();});
-topCard.addEventListener("pointercancel",()=>{dragging=false;snapBack();});
+topCard .addEventListener("pointerdown",e=>{dragging=true;dragStart=e.clientX;dragX=0;ptId=e.pointerId;topCard.setPointerCapture(e.pointerId);topCard.style.transition="";});
+topCard .addEventListener("pointermove",e=>{if(!dragging||e.pointerId!==ptId)return;dragX=e.clientX-dragStart;setDrag(dragX);});
+topCard .addEventListener("pointerup",  e=>{if(!dragging||e.pointerId!==ptId)return;dragging=false;dragX>THRESH?flyOff("right"):dragX<-THRESH?flyOff("left"):snapBack();});
+topCard .addEventListener("pointercancel",()=>{dragging=false;snapBack();});
 document.getElementById("btn-like").addEventListener("click",()=>{setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);});
 document.getElementById("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
