@@ -68,6 +68,7 @@ const SCREEN_IDS = [
   "rt","rt-end","rt-handoff","rt-1v1",
   "sdk-diff","sudoku","sudoku-win","sudoku-end"
 ];
+
 function showScreen(name) {
   SCREEN_IDS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
