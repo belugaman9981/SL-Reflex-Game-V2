@@ -145,11 +145,11 @@ const MODES=[
   {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", glow:"rgba(20,184,166,.3)",  accent:"#2dd4bf"},
 ];
 
-let deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
-const topCard=document.getElementById("swipe-top"),backCard=document.getElementById("swipe-back");
+let      deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
+const    topCard=document.getElementById("swipe-top"),backCard=document.getElementById("swipe-back");
 function getStampP(){return document.getElementById("stamp-play");}
 function getStampS(){return document.getElementById("stamp-skip");}
-const THRESH=72,MAX_ROT=18,FLY=520;
+const    THRESH=72,MAX_ROT=18,FLY=520;
 
 function renderCard(el,m){
   el.innerHTML="";
