@@ -16,26 +16,26 @@ body{width:480px;height:610px;padding:16px 20px 14px;display:flex;flex-direction
 .ach-toast.show        {transform:translateX(-50%) translateY(0)}
 
 /* ── SWIPE DECK ───────────────────────────────── */
-.swipe-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475569;margin-bottom:-4px}
-.swipe-deck-wrap{position:relative;width:268px;height:278px;flex-shrink:0}
-.swipe-card{position:absolute;inset:0;border-radius:22px;padding:20px 20px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;overflow:hidden;cursor:grab;will-change:transform;background:#0d1829;isolation:isolate}
-.swipe-card:active{cursor:grabbing}
-#swipe-back{transform:scale(.92) translateY(10px);transition:transform .25s;z-index:1}
-#swipe-top{z-index:2}
-.card-emoji{font-size:38px;line-height:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
-.card-name{font-size:20px;font-weight:800;text-align:center;color:#f1f5f9;line-height:1.1}
-.card-desc{font-size:11px;color:rgba(255,255,255,.6);text-align:center;line-height:1.5;max-width:185px}
-.card-tags{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:1px}
-.card-tag{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.14)}
-.stamp{position:absolute;top:18px;font-size:22px;font-weight:800;letter-spacing:.1em;padding:4px 11px;border-radius:7px;border:3px solid;opacity:0;pointer-events:none}
-.stamp-play{left:18px;color:#4ade80;border-color:#4ade80;transform:rotate(-15deg)}
-.stamp-skip{right:18px;color:#f87171;border-color:#f87171;transform:rotate(15deg)}
-.swipe-actions{display:flex;gap:36px;align-items:center;margin-top:1px}
-.swipe-btn{width:50px;height:50px;border-radius:50%;border:none;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;font-weight:700;transition:transform .12s,background .15s}
-.swipe-btn.nope{background:rgba(239,68,68,.15);color:#f87171;box-shadow:0 0 0 2px rgba(239,68,68,.3)}
-.swipe-btn.like{background:rgba(34,197,94,.15);color:#4ade80;box-shadow:0 0 0 2px rgba(34,197,94,.3)}
-.swipe-btn:hover{transform:scale(1.08)}
-.swipe-btn:active{transform:scale(.94)}
+.swipe-eyebrow       {font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475569;margin-bottom:-4px}
+.swipe-deck-wrap     {position:relative;width:268px;height:278px;flex-shrink:0}
+.swipe-card          {position:absolute;inset:0;border-radius:22px;padding:20px 20px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;overflow:hidden;cursor:grab;will-change:transform;background:#0d1829;isolation:isolate}
+.swipe-card:active   {cursor:grabbing}
+#swipe-back          {transform:scale(.92) translateY(10px);transition:transform .25s;z-index:1}
+#swipe-top           {z-index:2}
+.card-emoji          {font-size:38px;line-height:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))}
+.card-name           {font-size:20px;font-weight:800;text-align:center;color:#f1f5f9;line-height:1.1}
+.card-desc           {font-size:11px;color:rgba(255,255,255,.6);text-align:center;line-height:1.5;max-width:185px}
+.card-tags           {display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:1px}
+.card-tag            {font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:99px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.14)}
+.stamp               {position:absolute;top:18px;font-size:22px;font-weight:800;letter-spacing:.1em;padding:4px 11px;border-radius:7px;border:3px solid;opacity:0;pointer-events:none}
+.stamp-play          {left:18px;color:#4ade80;border-color:#4ade80;transform:rotate(-15deg)}
+.stamp-skip          {right:18px;color:#f87171;border-color:#f87171;transform:rotate(15deg)}
+.swipe-actions       {display:flex;gap:36px;align-items:center;margin-top:1px}
+.swipe-btn           {width:50px;height:50px;border-radius:50%;border:none;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;font-weight:700;transition:transform .12s,background .15s}
+.swipe-btn.nope      {background:rgba(239,68,68,.15);color:#f87171;box-shadow:0 0 0 2px rgba(239,68,68,.3)}
+.swipe-btn.like      {background:rgba(34,197,94,.15);color:#4ade80;box-shadow:0 0 0 2px rgba(34,197,94,.3)}
+.swipe-btn:hover     {transform:scale(1.08)}
+.swipe-btn:active    {transform:scale(.94)}
 .swipe-btn.nope:hover{background:rgba(239,68,68,.25)}
 .swipe-btn.like:hover{background:rgba(34,197,94,.25)}
 .swipe-hint{font-size:11px;color:#334155;margin-top:-4px;letter-spacing:.03em}
