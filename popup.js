@@ -129,9 +129,9 @@ function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
 /* ═══════════════════════════════════════════════════
    SEEDED RNG
 ═══════════════════════════════════════════════════ */
-function mkRng(seed){let s=seed>>>0;return()=>{s=Math.imul(s^s>>>15,s|1);s^=s+Math.imul(s^s>>>7,s|61);return((s^s>>>14)>>>0)/0xffffffff;};}
-function dateSeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
-function isDailyDone(){try{return localStorage.getItem("daily_date")===new Date().toISOString().slice(0,10);}catch{return false;}}
+function mkRng        (seed){let s=seed>>>0;return()=>{s=Math.imul(s^s>>>15,s|1);s^=s+Math.imul(s^s>>>7,s|61);return((s^s>>>14)>>>0)/0xffffffff;};}
+function dateSeed     (){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
+function isDailyDone  (){try{return localStorage.getItem("daily_date")===new Date().toISOString().slice(0,10);}catch{return false;}}
 function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOString().slice(0,10));}catch{}unlockAch("daily_done");}
 
 /* ═══════════════════════════════════════════════════
@@ -179,8 +179,8 @@ topCard .addEventListener("pointerdown",e=>{dragging=true;dragStart=e.clientX;dr
 topCard .addEventListener("pointermove",e=>{if(!dragging||e.pointerId!==ptId)return;dragX=e.clientX-dragStart;setDrag(dragX);});
 topCard .addEventListener("pointerup",  e=>{if(!dragging||e.pointerId!==ptId)return;dragging=false;dragX>THRESH?flyOff("right"):dragX<-THRESH?flyOff("left"):snapBack();});
 topCard .addEventListener("pointercancel",()=>{dragging=false;snapBack();});
-document.getElementById("btn-like").addEventListener("click",()=>{setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);});
-document.getElementById("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
+document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);});
+document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
 function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();showScreen("home");}
@@ -229,9 +229,9 @@ async function doSubmit() {
 ═══════════════════════════════════════════════════ */
 let lbGame="sl", lbTimeTab="all", lbHighlight=null;
 
-document.getElementById("btn-lb-close").addEventListener("click",goHome);
-document.getElementById("btn-lb-home") .addEventListener("click",goHome);
-document.getElementById("btn-lb-play") .addEventListener("click",()=>{refreshSLScreen();showScreen("start");});
+document.getElementById  ("btn-lb-close").addEventListener("click",goHome);
+document.getElementById  ("btn-lb-home") .addEventListener("click",goHome);
+document.getElementById  ("btn-lb-play") .addEventListener("click",()=>{refreshSLScreen();showScreen("start");});
 document.querySelectorAll(".lb-game-tab").forEach(btn=>btn.addEventListener("click",()=>{lbGame=btn.dataset.game;document.querySelectorAll(".lb-game-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");loadLeaderboard();}));
 document.querySelectorAll(".lb-tab").forEach(btn=>btn.addEventListener("click",()=>{lbTimeTab=btn.dataset.tab;document.querySelectorAll(".lb-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");loadLeaderboard();}));
 
@@ -309,24 +309,24 @@ let slSelectedTime=60;
 const letterEl=document.getElementById("letter"),hudScore=document.getElementById("hud-score"),hudLevel=document.getElementById("hud-level"),hudTime=document.getElementById("hud-time"),timerBar=document.getElementById("timer-bar"),comboEl=document.getElementById("sl-combo");
 
 document.querySelectorAll(".time-btn").forEach(btn=>{btn.addEventListener("click",()=>{document.querySelectorAll(".time-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");slSelectedTime=parseInt(btn.dataset.t);SFX.click();});});
-document.getElementById("btn-ghost-toggle").addEventListener("click",()=>{slGhost=!slGhost;SFX.click();refreshSLScreen();});
-document.getElementById("btn-restart-win") .addEventListener("click",startSL);
-document.getElementById("btn-win-home")    .addEventListener("click",goHome);
-document.getElementById("btn-back-sl")     .addEventListener("click",goHome);
+document.getElementById  ("btn-ghost-toggle").addEventListener("click",()=>{slGhost=!slGhost;SFX.click();refreshSLScreen();});
+document.getElementById  ("btn-restart-win") .addEventListener("click",startSL);
+document.getElementById  ("btn-win-home")    .addEventListener("click",goHome);
+document.getElementById  ("btn-back-sl")     .addEventListener("click",goHome);
 
 function refreshSLScreen(){document.getElementById("sl-highscore").textContent=getHS();const g=document.getElementById("btn-ghost-toggle");g.classList.toggle("on",slGhost);document.getElementById("ghost-state").textContent=slGhost?"ON":"OFF";document.getElementById("ghost-state").className=`option-state ${slGhost?"on":"off"}`;}
 function getLevelForScore(s){let lv=1;for(let i=SL_LEVELS.length-1;i>=0;i--){if(s>=SL_LEVELS[i]){lv=i+1;break;}}return Math.min(lv,SL_MAX_LEVEL);}
 
-function updateHud(){hudScore.textContent=`Score: ${slScore}`;hudLevel.textContent=`Lvl ${slLevel}`;if(slSelectedTime===99){hudTime.textContent="∞";timerBar.style.width="100%";timerBar.style.background="linear-gradient(90deg,#6366f1,#8b5cf6)";}else{hudTime.textContent=`⏱ ${slTime}s`;timerBar.style.width=`${(slTime/slMaxTime)*100}%`;timerBar.style.background=slTime>slMaxTime*.5?"linear-gradient(90deg,#22c55e,#84cc16)":slTime>slMaxTime*.25?"linear-gradient(90deg,#f59e0b,#f97316)":"linear-gradient(90deg,#ef4444,#dc2626)";}}
-function stopSLTimer(){clearInterval(slTimer);}
+function updateHud()   {hudScore.textContent=`Score: ${slScore}`;hudLevel.textContent=`Lvl ${slLevel}`;if(slSelectedTime===99){hudTime.textContent="∞";timerBar.style.width="100%";timerBar.style.background="linear-gradient(90deg,#6366f1,#8b5cf6)";}else{hudTime.textContent=`⏱ ${slTime}s`;timerBar.style.width=`${(slTime/slMaxTime)*100}%`;timerBar.style.background=slTime>slMaxTime*.5?"linear-gradient(90deg,#22c55e,#84cc16)":slTime>slMaxTime*.25?"linear-gradient(90deg,#f59e0b,#f97316)":"linear-gradient(90deg,#ef4444,#dc2626)";}}
+function stopSLTimer() {clearInterval(slTimer);}
 function startSLTimer(){stopSLTimer();if(slSelectedTime===99){updateHud();return;}slTime=slMaxTime=slSelectedTime;updateHud();slTimer=setInterval(()=>{slTime--;updateHud();if(slTime<=0){slTime=0;slEnd("time");}},1000);}
-function startIdle(){clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
-function stopIdle() {clearTimeout(slIdle);}
-function slRandom(){const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
-const    SL_KEYS={S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
-function slNext(){slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
-function slFlash(cls){letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
-function updateCombo(){if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
+function startIdle()   {clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
+function stopIdle()    {clearTimeout(slIdle);}
+function slRandom()    {const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
+const    SL_KEYS=      {S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
+function slNext()      {slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
+function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
+function updateCombo() {if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
 function startSL(){slScore=0;slLevel=1;slCombo=0;slAlive=true;showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();setTimeout(()=>{slNext();startIdle();},600);}
 
