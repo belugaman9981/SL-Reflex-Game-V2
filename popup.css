@@ -8,12 +8,12 @@ body{width:480px;height:610px;padding:16px 20px 14px;display:flex;flex-direction
 .screen.hidden{display:none}
 
 /* ── ACHIEVEMENTS ─────────────────────────────── */
-.ach-bar{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;min-height:24px;width:100%}
-.ach-badge{font-size:16px;opacity:.18;filter:grayscale(1);transition:opacity .3s,filter .3s;cursor:default;position:relative}
-.ach-badge.unlocked{opacity:1;filter:none}
+.ach-bar               {display:flex;gap:7px;justify-content:center;flex-wrap:wrap;min-height:24px;width:100%}
+.ach-badge             {font-size:16px;opacity:.18;filter:grayscale(1);transition:opacity .3s,filter .3s;cursor:default;position:relative}
+.ach-badge.unlocked    {opacity:1;filter:none}
 .ach-badge:hover::after{content:attr(title);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1e293b;color:#e2e8f0;font-size:10px;white-space:nowrap;padding:3px 8px;border-radius:6px;border:1px solid #334155;pointer-events:none;z-index:10}
-.ach-toast{position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);background:#1e293b;border:1px solid #334155;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:100;pointer-events:none}
-.ach-toast.show{transform:translateX(-50%) translateY(0)}
+.ach-toast             {position:absolute;top:12px;left:50%;transform:translateX(-50%) translateY(-60px);background:#1e293b;border:1px solid #334155;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fbbf24;white-space:nowrap;transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:100;pointer-events:none}
+.ach-toast.show        {transform:translateX(-50%) translateY(0)}
 
 /* ── SWIPE DECK ───────────────────────────────── */
 .swipe-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#475569;margin-bottom:-4px}
