@@ -245,3 +245,4 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 .sdk-num:hover                                                {background: rgba(255,255,255,.12)}
 .sdk-num:active                                               {transform: scale(.92)}
 .sdk-num.dim                                                  {opacity: .25; pointer-events: none}
+
