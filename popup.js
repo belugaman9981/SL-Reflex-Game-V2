@@ -425,7 +425,7 @@ let sdkBoard=[],sdkPuzzle=[],sdkPlayer=[],sdkNotesCells=[];
 let sdkMistakes=0,sdkSelected=null,sdkSecs=0,sdkTimerInt=null,sdkNotesMode=false,sdkIsDaily=false,sdkDifficulty="Medium";
 const sdkBoardEl=document.getElementById("sdk-board"),sdkDiffEl=document.getElementById("sdk-diff"),sdkTimerEl=document.getElementById("sdk-timer"),sdkMistEl=document.getElementById("sdk-mistakes");
 
-document.querySelectorAll(".sdk-diff-card").forEach(btn=>btn.addEventListener("click",()=>{SFX.click();startSudoku(btn.dataset.diff,false);}));
+document.querySelectorAll(".sdk-diff-card") .forEach(btn=>btn.addEventListener("click",()=>{SFX.click();startSudoku(btn.dataset.diff,false);}));
 document.getElementById("btn-sdk-diff-back").addEventListener("click",goHome);
 document.getElementById("btn-sdk-quit")     .addEventListener("click",()=>{sdkStopTimer();goHome();});
 document.getElementById("btn-sdk-again")    .addEventListener("click",()=>showScreen("sdk-diff"));
