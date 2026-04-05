@@ -72,8 +72,8 @@ kbd                 {display:inline-block;padding:2px 7px;background:#1e293b;bor
 .hud-time      {color:#f59e0b}
 .ghost-hud     {font-size:15px;animation:pulse 1s ease-in-out infinite}
 .timer-bar-wrap{width:100%;height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
-.timer-bar{height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:width .9s linear}
-.letter-tile{font-size:78px;font-weight:800;letter-spacing:7px;padding:16px 38px;border-radius:22px;background:linear-gradient(180deg,#0f172a,#020617);box-shadow:inset 0 0 0 3px #334155,0 18px 42px rgba(0,0,0,.65);transition:transform .12s,box-shadow .12s,background .15s;min-width:180px;text-align:center}
+.timer-bar     {height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#ef4444);transition:width .9s linear}
+.letter-tile   {font-size:78px;font-weight:800;letter-spacing:7px;padding:16px 38px;border-radius:22px;background:linear-gradient(180deg,#0f172a,#020617);box-shadow:inset 0 0 0 3px #334155,0 18px 42px rgba(0,0,0,.65);transition:transform .12s,box-shadow .12s,background .15s;min-width:180px;text-align:center}
 .letter-tile.pressed{transform:translateY(3px) scale(.97);box-shadow:inset 0 0 0 3px #475569,0 8px 18px rgba(0,0,0,.5)}
 .letter-tile.correct{background:linear-gradient(180deg,#14532d,#052e16);box-shadow:inset 0 0 0 3px #22c55e,0 18px 42px rgba(34,197,94,.25)}
 .letter-tile.wrong{background:linear-gradient(180deg,#7f1d1d,#450a0a);box-shadow:inset 0 0 0 3px #ef4444,0 18px 42px rgba(239,68,68,.3)}
