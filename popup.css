@@ -95,17 +95,17 @@ kbd                 {display:inline-block;padding:2px 7px;background:#1e293b;bor
 .sl-highscore-wrap  {font-size:12px;color:#475569;font-weight:600}
 
 /* ── FLAG PICKER ──────────────────────────────── */
-.name-form          {display:flex;flex-direction:column;align-items:center;gap:9px;width:100%}
-.flag-section       {width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
-.flag-label         {font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.1em;align-self:flex-start}
-.flag-selected      {font-size:28px;cursor:pointer;padding:6px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;transition:background .15s;line-height:1}
-.flag-selected:hover{background:rgba(255,255,255,.1)}
-.flag-grid          {display:grid;grid-template-columns:repeat(9,1fr);gap:3px;width:100%;max-height:96px;overflow-y:auto;background:rgba(255,255,255,.03);border-radius:10px;padding:6px;border:1px solid rgba(255,255,255,.07);scrollbar-width:thin;scrollbar-color:#334155 transparent}
-.flag-grid::-webkit-scrollbar{width:4px}
+.name-form                         {display:flex;flex-direction:column;align-items:center;gap:9px;width:100%}
+.flag-section                      {width:100%;display:flex;flex-direction:column;align-items:center;gap:6px}
+.flag-label                        {font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.1em;align-self:flex-start}
+.flag-selected                     {font-size:28px;cursor:pointer;padding:6px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;transition:background .15s;line-height:1}
+.flag-selected:hover               {background:rgba(255,255,255,.1)}
+.flag-grid                         {display:grid;grid-template-columns:repeat(9,1fr);gap:3px;width:100%;max-height:96px;overflow-y:auto;background:rgba(255,255,255,.03);border-radius:10px;padding:6px;border:1px solid rgba(255,255,255,.07);scrollbar-width:thin;scrollbar-color:#334155 transparent}
+.flag-grid::-webkit-scrollbar      {width:4px}
 .flag-grid::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
-.flag-opt{font-size:16px;cursor:pointer;padding:3px;border-radius:5px;text-align:center;transition:background .1s;border:1px solid transparent}
-.flag-opt:hover{background:rgba(255,255,255,.1)}
-.flag-opt.selected{background:rgba(96,165,250,.2);border-color:rgba(96,165,250,.5)}
+.flag-opt                          {font-size:16px;cursor:pointer;padding:3px;border-radius:5px;text-align:center;transition:background .1s;border:1px solid transparent}
+.flag-opt:hover                    {background:rgba(255,255,255,.1)}
+.flag-opt.selected                 {background:rgba(96,165,250,.2);border-color:rgba(96,165,250,.5)}
 
 .name-input{width:100%;padding:9px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;color:#e2e8f0;outline:none;transition:border-color .15s;text-align:center}
 .name-input:focus{border-color:rgba(96,165,250,.6);background:rgba(255,255,255,.09)}
