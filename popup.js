@@ -583,3 +583,141 @@ document.addEventListener("keydown",e=>{
   }
 });
 
+/* ═══════════════════════════════════════════════════
+   THEMES  (dark → light → neon)
+═══════════════════════════════════════════════════ */
+const THEMES       = ["dark","light","neon"];
+const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light", neon:"⚡ Neon"};
+
+function getTheme()    {try{return localStorage.getItem("theme")||"dark";}catch{return "dark";}}
+function saveTheme(t)  {try{localStorage.setItem("theme",t);}catch{}}
+
+function applyTheme(t) {
+  document.body.classList.remove("theme-light","theme-neon");
+  if(t==="light") document.body.classList.add("theme-light");
+  if(t==="neon")  document.body.classList.add("theme-neon");
+  const b=document.getElementById("btn-theme");
+  if(b) b.textContent = THEME_LABELS[t]||"🌙 Dark";
+  saveTheme(t);
+}
+
+function cycleTheme() {
+  const cur=getTheme(), idx=THEMES.indexOf(cur);
+  applyTheme(THEMES[(idx+1)%THEMES.length]);
+  SFX.click();
+}
+
+document.getElementById("btn-theme").addEventListener("click", cycleTheme);
+
+/* ═══════════════════════════════════════════════════
+   BACKGROUND MUSIC  (Web Audio API, no external files)
+   Calm ambient pad + slow pentatonic arpeggio
+═══════════════════════════════════════════════════ */
+let _musicOn   = false;
+let _musicMaster = null;
+let _musicNodes  = [];
+let _musicArpTO  = null;
+let _musicArpIdx = 0;
+
+// C4 pentatonic major: C D E G A C5
+const MUSIC_SCALE = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+// Gentle up-down path through the scale
+const MUSIC_PATTERN = [0, 2, 4, 3, 5, 4, 2, 1, 0, 3, 1, 4];
+
+function getMusicPref()  {try{return localStorage.getItem("music_on")==="1";}catch{return false;}}
+function saveMusicPref(v){try{localStorage.setItem("music_on",v?"1":"0");}catch{}}
+
+function startMusic() {
+  if(_musicOn) return;
+  _musicOn = true;
+  const ctx = ac();
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0, ctx.currentTime);
+  master.gain.linearRampToValueAtTime(0.13, ctx.currentTime + 2.5);
+  master.connect(ctx.destination);
+  _musicMaster = master;
+
+  // Low-pass filter warms the pad
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 800;
+  filter.Q.value = 0.8;
+  filter.connect(master);
+  _musicNodes.push(filter);
+
+  // Pad: 3 detuned sines on C2 / G2 / C3
+  [130.81, 196.00, 261.63].forEach((freq, i) => {
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    osc.detune.value = (i - 1) * 7;
+    g.gain.value = 0.16;
+    osc.connect(g); g.connect(filter);
+    osc.start();
+    _musicNodes.push(osc, g);
+  });
+
+  // LFO — breathes the filter frequency slowly
+  const lfo = ctx.createOscillator(), lfoG = ctx.createGain();
+  lfo.frequency.value = 0.1;
+  lfoG.gain.value = 120;
+  lfo.connect(lfoG); lfoG.connect(filter.frequency);
+  lfo.start();
+  _musicNodes.push(lfo, lfoG);
+
+  _musicArpIdx = 0;
+  _scheduleArp();
+  saveMusicPref(true);
+  updateMusicBtn();
+}
+
+function _scheduleArp() {
+  if(!_musicOn) return;
+  const ctx  = ac();
+  const freq = MUSIC_SCALE[MUSIC_PATTERN[_musicArpIdx % MUSIC_PATTERN.length]];
+  const osc  = ctx.createOscillator();
+  const env  = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  env.gain.setValueAtTime(0, ctx.currentTime);
+  env.gain.linearRampToValueAtTime(0.055, ctx.currentTime + 0.07);
+  env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.2);
+  osc.connect(env);
+  if(_musicMaster) env.connect(_musicMaster);
+  osc.start(); osc.stop(ctx.currentTime + 2.3);
+  _musicArpIdx++;
+  const gap = 1500 + Math.random() * 600;
+  _musicArpTO = setTimeout(_scheduleArp, gap);
+}
+
+function stopMusic() {
+  if(!_musicOn) return;
+  _musicOn = false;
+  clearTimeout(_musicArpTO);
+  if(_musicMaster) {
+    try{const ctx=ac(); _musicMaster.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.4);}catch(_){}
+    setTimeout(() => {
+      _musicNodes.forEach(n => { try{n.stop?.(); n.disconnect?.();}catch(_){} });
+      _musicNodes = [];
+      _musicMaster = null;
+    }, 1500);
+  }
+  saveMusicPref(false);
+  updateMusicBtn();
+}
+
+function toggleMusic() { _musicOn ? stopMusic() : startMusic(); }
+
+function updateMusicBtn() {
+  const b = document.getElementById("btn-music"); if(!b) return;
+  b.textContent = _musicOn ? "🎵 Music ON" : "🎵 Music OFF";
+  b.classList.toggle("on", _musicOn);
+}
+
+document.getElementById("btn-music").addEventListener("click", () => { toggleMusic(); SFX.click(); });
+
+/* ─── init ──────────────────────────────────── */
+applyTheme(getTheme());
+updateMusicBtn();
+if(getMusicPref()) startMusic();
+
