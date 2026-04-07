@@ -246,3 +246,35 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 .sdk-num:active                                               {transform: scale(.92)}
 .sdk-num.dim                                                  {opacity: .25; pointer-events: none}
 
+/* ── SCREEN SHAKE ────────────────────────────── */
+@keyframes shake{0%,100%{transform:translateX(0)}12%{transform:translateX(-9px)}24%{transform:translateX(8px)}36%{transform:translateX(-6px)}48%{transform:translateX(5px)}60%{transform:translateX(-3px)}72%{transform:translateX(2px)}86%{transform:translateX(-1px)}}
+.shaking{animation:shake .36s cubic-bezier(.36,.07,.19,.97) both}
+
+/* ── PARTICLES ───────────────────────────────── */
+.particle{position:fixed;border-radius:50%;pointer-events:none;z-index:999}
+
+/* ── LIVES HUD ───────────────────────────────── */
+.lives-hud{font-size:13px;letter-spacing:1px}
+
+/* ── RT MEDAL ────────────────────────────────── */
+.rt-medal-wrap      {display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:9px;width:100%}
+.rt-medal           {font-size:28px;line-height:1.2}
+.rt-medal-label     {font-size:11px;font-weight:700;text-align:center}
+
+/* ── STATS SCREEN ────────────────────────────── */
+#screen-stats           {justify-content:flex-start;padding-top:4px;gap:7px;overflow-y:auto}
+.stats-sections         {display:flex;flex-direction:column;gap:7px;width:100%;overflow-y:auto;max-height:460px;scrollbar-width:thin;scrollbar-color:#334155 transparent}
+.stats-sections::-webkit-scrollbar      {width:4px}
+.stats-sections::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+.stats-section          {background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:9px 13px;display:flex;flex-direction:column;gap:5px}
+.stats-section-title    {font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px}
+.stats-row              {display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.stats-label            {color:#64748b;font-weight:600}
+.stats-val              {color:#e2e8f0;font-weight:700}
+.stats-streak           {font-size:36px;font-weight:800;color:#fbbf24;text-align:center;line-height:1.1}
+.stats-streak-label     {font-size:11px;color:#64748b;text-align:center}
+
+/* ── SHARE ROW ───────────────────────────────── */
+.name-share-row         {display:flex;gap:8px;width:100%}
+.name-share-row .btn-ghost-btn{flex:1;text-align:center}
+

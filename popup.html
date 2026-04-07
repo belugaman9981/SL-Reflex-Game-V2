@@ -44,6 +44,9 @@
       <button class="option-toggle" id="btn-ghost-toggle">
         👻 Ghost <span id="ghost-state" class="option-state off">OFF</span>
       </button>
+      <button class="option-toggle" id="btn-lives-toggle">
+        ❤️ Lives <span id="lives-state" class="option-state off">OFF</span>
+      </button>
       <div class="time-select">
         <span class="time-label">Time</span>
         <button class="time-btn" data-t="30">30s</button>
@@ -61,6 +64,7 @@
     <div class="hud">
       <span class="hud-score" id="hud-score">Score: 0</span>
       <span id="ghost-hud" class="ghost-hud hidden">👻</span>
+      <span id="lives-hud" class="lives-hud hidden">❤️❤️❤️</span>
       <span class="hud-level" id="hud-level">Lvl 1</span>
       <span class="hud-time"  id="hud-time">⏱ 60s</span>
     </div>
@@ -85,7 +89,10 @@
       <input type="text" id="name-input" class="name-input" maxlength="16"
              placeholder="Your name" autocomplete="off" spellcheck="false"/>
       <button class="btn-restart" id="btn-submit-score">Submit to World 🌍</button>
-      <button class="btn-ghost-btn" id="btn-skip-submit">Skip</button>
+      <div class="name-share-row">
+        <button class="btn-ghost-btn" id="btn-skip-submit">Skip</button>
+        <button class="btn-ghost-btn" id="btn-share-score">📋 Share</button>
+      </div>
     </div>
   </div>
 
@@ -102,6 +109,7 @@
     </div>
     <div class="lb-time-tabs">
       <button class="lb-tab active" data-tab="all">All Time</button>
+      <button class="lb-tab" data-tab="week">This Week</button>
       <button class="lb-tab" data-tab="today">Today</button>
     </div>
     <div class="lb-list" id="lb-list"><div class="lb-loading">Loading…</div></div>
@@ -118,6 +126,7 @@
     <p class="end-title win">Legendary!</p>
     <p class="end-score">Score: <span id="win-score-val">0</span> · Level 10</p>
     <button class="btn-restart" id="btn-restart-win">Keep Going</button>
+    <button class="btn-ghost-btn" id="btn-share-win">📋 Share Score</button>
     <button class="btn-ghost-btn" id="btn-win-home">← Menu</button>
   </div>
 
@@ -142,6 +151,7 @@
     <div class="rt-chart" id="rt-chart"></div>
     <div class="rt-summary" id="rt-summary"></div>
     <div class="rt-rating" id="rt-rating"></div>
+    <div class="rt-medal-wrap" id="rt-medal-wrap"></div>
     <div class="rt-end-btns">
       <button class="btn-restart" id="btn-rt-again">Again</button>
       <button class="btn-restart" id="btn-rt-submit" style="background:linear-gradient(180deg,#059669,#047857)">Submit 🌍</button>
@@ -193,6 +203,7 @@
       <button class="sdk-tool" id="btn-sdk-notes">✏️ <span>Notes</span></button>
       <button class="sdk-tool" id="btn-sdk-autonotes">⚡ <span>Auto</span></button>
       <button class="sdk-tool" id="btn-sdk-erase">⌫ <span>Erase</span></button>
+      <button class="sdk-tool" id="btn-sdk-hint">💡 <span>Hint (3)</span></button>
     </div>
     <div class="sdk-numpad" id="sdk-numpad">
       <button class="sdk-num" data-n="1">1</button><button class="sdk-num" data-n="2">2</button>
@@ -220,6 +231,39 @@
     <p style="color:#64748b;font-size:14px">3 strikes and you're out</p>
     <button class="btn-restart" id="btn-sdk-retry">Try Again</button>
     <button class="btn-ghost-btn" id="btn-sdk-end-home">← Menu</button>
+  </div>
+
+  <!-- ░░ STATS ░░ -->
+  <div id="screen-stats" class="screen hidden">
+    <div class="lb-header">
+      <h2 class="lb-title">📊 My Stats</h2>
+      <button class="btn-ghost-btn small" id="btn-stats-close">✕</button>
+    </div>
+    <div class="stats-sections">
+      <div class="stats-section">
+        <div class="stats-section-title">🧠 SL Challenge</div>
+        <div class="stats-row"><span class="stats-label">Games Played</span><span class="stats-val" id="stats-sl-games">0</span></div>
+        <div class="stats-row"><span class="stats-label">Best Score</span><span class="stats-val" id="stats-sl-best">–</span></div>
+        <div class="stats-row"><span class="stats-label">Best Combo</span><span class="stats-val" id="stats-sl-combo">–</span></div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-section-title">⚡ Reaction Test</div>
+        <div class="stats-row"><span class="stats-label">Games Played</span><span class="stats-val" id="stats-rt-games">0</span></div>
+        <div class="stats-row"><span class="stats-label">Best Avg</span><span class="stats-val" id="stats-rt-best-avg">–</span></div>
+        <div class="stats-row"><span class="stats-label">Best Single</span><span class="stats-val" id="stats-rt-best-single">–</span></div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-section-title">🔢 Sudoku</div>
+        <div class="stats-row"><span class="stats-label">Games Solved</span><span class="stats-val" id="stats-sdk-games">0</span></div>
+        <div class="stats-row"><span class="stats-label">Best Time</span><span class="stats-val" id="stats-sdk-best">–</span></div>
+      </div>
+      <div class="stats-section">
+        <div class="stats-section-title">📅 Daily Streak</div>
+        <div class="stats-streak" id="stats-streak-num">0</div>
+        <div class="stats-streak-label">days in a row</div>
+      </div>
+    </div>
+    <button class="btn-ghost-btn" id="btn-stats-home">← Menu</button>
   </div>
 
   <script src="popup.js"></script>
