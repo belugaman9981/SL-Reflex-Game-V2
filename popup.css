@@ -289,12 +289,13 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 ══════════════════════════════════════════════ */
 body.theme-light{background:linear-gradient(145deg,#dce6f7,#eef2f8);color:#1e293b}
 body.theme-light .swipe-eyebrow,body.theme-light .swipe-hint{color:#475569}
+body.theme-light .swipe-card           {background:linear-gradient(180deg,#ffffff,#f0f7ff);box-shadow:0 12px 36px rgba(14,165,233,.15)}
 body.theme-light .card-name            {color:#0f172a}
 body.theme-light .card-desc            {color:rgba(0,0,0,.5)}
 body.theme-light .card-tag             {background:rgba(0,0,0,.06);color:#334155;border-color:rgba(0,0,0,.1)}
-body.theme-light .home-ctrl-btn        {color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
-body.theme-light .home-ctrl-btn:hover  {background:rgba(0,0,0,.09);color:#334155}
-body.theme-light .home-ctrl-btn.on     {background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#4338ca}
+body.theme-light .home-ctrl-btn        {color:#0369a1;background:rgba(14,165,233,.12);border-color:rgba(14,165,233,.35)}
+body.theme-light .home-ctrl-btn:hover  {background:rgba(14,165,233,.22);color:#0284c7}
+body.theme-light .home-ctrl-btn.on     {background:rgba(14,165,233,.22);border-color:rgba(14,165,233,.6);color:#0369a1}
 body.theme-light .ach-badge:hover::after{background:#f8fafc;border-color:#e2e8f0;color:#334155}
 body.theme-light .ach-toast            {background:#f8fafc;border-color:#e2e8f0;color:#b45309}
 body.theme-light .instructions         {background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.07)}
@@ -312,18 +313,20 @@ body.theme-light .letter-tile.correct  {background:linear-gradient(180deg,#dcfce
 body.theme-light .letter-tile.wrong    {background:linear-gradient(180deg,#fee2e2,#fecaca);box-shadow:inset 0 0 0 3px #ef4444,0 18px 42px rgba(239,68,68,.15);color:#7f1d1d}
 body.theme-light .letter-tile.ghost    {color:#cbd5e1}
 body.theme-light .sl-combo.active      {color:#d97706}
-body.theme-light .option-toggle        {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08);color:#475569}
-body.theme-light .option-toggle:hover  {background:rgba(0,0,0,.07);color:#334155}
-body.theme-light .option-toggle.on     {background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.25);color:#7c3aed}
-body.theme-light .option-state         {background:rgba(0,0,0,.06);color:#64748b}
-body.theme-light .option-state.on      {background:rgba(124,58,237,.12);color:#7c3aed}
-body.theme-light .time-select          {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.07)}
-body.theme-light .time-btn             {color:#64748b}
-body.theme-light .time-btn:hover       {background:rgba(0,0,0,.05);color:#334155}
-body.theme-light .time-btn.active      {color:#92400e;background:rgba(146,64,14,.1);border-color:rgba(146,64,14,.3)}
+body.theme-light .option-toggle        {background:rgba(14,165,233,.08);border-color:rgba(14,165,233,.25);color:#0284c7}
+body.theme-light .option-toggle:hover  {background:rgba(14,165,233,.15);color:#0369a1}
+body.theme-light .option-toggle.on     {background:rgba(14,165,233,.18);border-color:rgba(14,165,233,.55);color:#0369a1}
+body.theme-light .option-state         {background:rgba(14,165,233,.12);color:#0284c7}
+body.theme-light .option-state.on      {background:rgba(14,165,233,.22);color:#0369a1}
+body.theme-light .time-select          {background:rgba(14,165,233,.07);border-color:rgba(14,165,233,.2)}
+body.theme-light .time-btn             {color:#0284c7}
+body.theme-light .time-btn:hover       {background:rgba(14,165,233,.12);color:#0369a1}
+body.theme-light .time-btn.active      {color:#fff;background:rgba(14,165,233,.85);border-color:rgba(14,165,233,.9)}
 body.theme-light .sl-highscore-wrap    {color:#475569}
-body.theme-light .btn-ghost-btn        {color:#475569;border-color:rgba(0,0,0,.12)}
-body.theme-light .btn-ghost-btn:hover  {color:#1e293b;border-color:rgba(0,0,0,.2)}
+body.theme-light .btn-restart          {background:linear-gradient(180deg,#0ea5e9,#0284c7);box-shadow:0 8px 20px rgba(14,165,233,.4);color:#fff}
+body.theme-light .btn-restart:hover    {box-shadow:0 12px 28px rgba(14,165,233,.55)}
+body.theme-light .btn-ghost-btn        {color:#0284c7;border-color:rgba(14,165,233,.35)}
+body.theme-light .btn-ghost-btn:hover  {color:#0369a1;border-color:rgba(14,165,233,.6)}
 body.theme-light .end-score            {color:#64748b}
 body.theme-light .end-score span       {color:#1e293b;font-weight:700}
 body.theme-light .name-input           {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
@@ -334,10 +337,10 @@ body.theme-light .flag-selected        {background:rgba(0,0,0,.05);border-color:
 body.theme-light .flag-opt:hover       {background:rgba(0,0,0,.08)}
 body.theme-light .flag-opt.selected    {background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.4)}
 body.theme-light .lb-title             {background:linear-gradient(135deg,#1d4ed8,#7c3aed);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-body.theme-light .lb-game-tab          {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.07);color:#475569}
-body.theme-light .lb-game-tab.active   {color:#1e293b;background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.14)}
-body.theme-light .lb-tab               {background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.06);color:#64748b}
-body.theme-light .lb-tab.active        {color:#1d4ed8;background:rgba(29,78,216,.07);border-color:rgba(29,78,216,.25)}
+body.theme-light .lb-game-tab          {background:rgba(14,165,233,.07);border-color:rgba(14,165,233,.18);color:#0284c7}
+body.theme-light .lb-game-tab.active   {color:#fff;background:rgba(14,165,233,.8);border-color:rgba(14,165,233,.9)}
+body.theme-light .lb-tab               {background:rgba(14,165,233,.06);border-color:rgba(14,165,233,.15);color:#0284c7}
+body.theme-light .lb-tab.active        {color:#fff;background:rgba(14,165,233,.75);border-color:rgba(14,165,233,.9)}
 body.theme-light .lb-list              {scrollbar-color:#cbd5e1 transparent}
 body.theme-light .lb-row               {background:rgba(0,0,0,.04)}
 body.theme-light .lb-row.you           {background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.18)}
@@ -387,11 +390,11 @@ body.theme-light .sdk-cell.same-num    {background:rgba(59,130,246,.07)}
 body.theme-light .sdk-cell.conflict    {color:#dc2626!important;background:rgba(220,38,38,.07)!important}
 body.theme-light .sdk-cell.conflict.given{color:#dc2626!important}
 body.theme-light .sdk-note-n.on        {color:#d97706}
-body.theme-light .sdk-tool             {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08);color:#475569}
-body.theme-light .sdk-tool:hover       {background:rgba(0,0,0,.08);color:#1e293b}
-body.theme-light .sdk-tool.active      {background:rgba(146,64,14,.08);border-color:rgba(146,64,14,.25);color:#92400e}
-body.theme-light .sdk-num              {background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.08);color:#1e293b}
-body.theme-light .sdk-num:hover        {background:rgba(0,0,0,.1)}
+body.theme-light .sdk-tool             {background:rgba(14,165,233,.09);border-color:rgba(14,165,233,.25);color:#0284c7}
+body.theme-light .sdk-tool:hover       {background:rgba(14,165,233,.18);color:#0369a1}
+body.theme-light .sdk-tool.active      {background:rgba(14,165,233,.7);border-color:rgba(14,165,233,.9);color:#fff}
+body.theme-light .sdk-num              {background:rgba(14,165,233,.1);border-color:rgba(14,165,233,.3);color:#0369a1}
+body.theme-light .sdk-num:hover        {background:rgba(14,165,233,.22)}
 body.theme-light .stats-section        {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.06)}
 body.theme-light .stats-section-title  {color:#475569}
 body.theme-light .stats-label          {color:#64748b}
