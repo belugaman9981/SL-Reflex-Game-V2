@@ -288,7 +288,7 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
    ☀️  LIGHT THEME
 ══════════════════════════════════════════════ */
 body.theme-light{background:linear-gradient(145deg,#dce6f7,#eef2f8);color:#1e293b}
-body.theme-light .swipe-eyebrow,body.theme-light .swipe-hint{color:#94a3b8}
+body.theme-light .swipe-eyebrow,body.theme-light .swipe-hint{color:#475569}
 body.theme-light .card-name            {color:#0f172a}
 body.theme-light .card-desc            {color:rgba(0,0,0,.5)}
 body.theme-light .card-tag             {background:rgba(0,0,0,.06);color:#334155;border-color:rgba(0,0,0,.1)}
@@ -298,7 +298,7 @@ body.theme-light .home-ctrl-btn.on     {background:rgba(99,102,241,.1);border-co
 body.theme-light .ach-badge:hover::after{background:#f8fafc;border-color:#e2e8f0;color:#334155}
 body.theme-light .ach-toast            {background:#f8fafc;border-color:#e2e8f0;color:#b45309}
 body.theme-light .instructions         {background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.07)}
-body.theme-light .instructions h2      {color:#94a3b8}
+body.theme-light .instructions h2      {color:#475569}
 body.theme-light .rule-seq             {background:rgba(0,0,0,.06);color:#334155}
 body.theme-light kbd                   {background:#e2e8f0;border-color:#cbd5e1 #cbd5e1 #94a3b8;color:#334155}
 body.theme-light .start-message        {color:#64748b}
@@ -321,14 +321,14 @@ body.theme-light .time-select          {background:rgba(0,0,0,.04);border-color:
 body.theme-light .time-btn             {color:#64748b}
 body.theme-light .time-btn:hover       {background:rgba(0,0,0,.05);color:#334155}
 body.theme-light .time-btn.active      {color:#92400e;background:rgba(146,64,14,.1);border-color:rgba(146,64,14,.3)}
-body.theme-light .sl-highscore-wrap    {color:#94a3b8}
+body.theme-light .sl-highscore-wrap    {color:#475569}
 body.theme-light .btn-ghost-btn        {color:#475569;border-color:rgba(0,0,0,.12)}
 body.theme-light .btn-ghost-btn:hover  {color:#1e293b;border-color:rgba(0,0,0,.2)}
 body.theme-light .end-score            {color:#64748b}
 body.theme-light .end-score span       {color:#1e293b;font-weight:700}
 body.theme-light .name-input           {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
 body.theme-light .name-input:focus     {border-color:rgba(59,130,246,.45);background:rgba(0,0,0,.06)}
-body.theme-light .name-input::placeholder{color:#94a3b8}
+body.theme-light .name-input::placeholder{color:#64748b}
 body.theme-light .flag-grid            {background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.05);scrollbar-color:#cbd5e1 transparent}
 body.theme-light .flag-selected        {background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
 body.theme-light .flag-opt:hover       {background:rgba(0,0,0,.08)}
@@ -342,38 +342,38 @@ body.theme-light .lb-list              {scrollbar-color:#cbd5e1 transparent}
 body.theme-light .lb-row               {background:rgba(0,0,0,.04)}
 body.theme-light .lb-row.you           {background:rgba(59,130,246,.07);border-color:rgba(59,130,246,.18)}
 body.theme-light .lb-row.top1          {background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.14)}
-body.theme-light .lb-rank              {color:#94a3b8}
+body.theme-light .lb-rank              {color:#475569}
 body.theme-light .lb-row.top1 .lb-rank {color:#b45309}
 body.theme-light .lb-name              {color:#0f172a}
 body.theme-light .lb-row.you .lb-name  {color:#1d4ed8}
 body.theme-light .lb-score             {color:#334155}
 body.theme-light .lb-meta              {color:#64748b}
 body.theme-light .lb-your-rank         {color:#475569}
-body.theme-light .lb-loading           {color:#94a3b8}
+body.theme-light .lb-loading           {color:#475569}
 body.theme-light .lb-error             {color:#dc2626}
-body.theme-light .rt-hud               {color:#94a3b8}
-body.theme-light .rt-sub               {color:#94a3b8}
+body.theme-light .rt-hud               {color:#475569}
+body.theme-light .rt-sub               {color:#475569}
 body.theme-light .rt-tile.waiting      {background:linear-gradient(180deg,#f1f5f9,#e2e8f0);box-shadow:inset 0 0 0 3px #cbd5e1,0 16px 40px rgba(0,0,0,.1)}
 body.theme-light .rt-tile-label        {color:#64748b}
 body.theme-light .rt-tile.done         {background:linear-gradient(180deg,#dbeafe,#bfdbfe);box-shadow:inset 0 0 0 3px #60a5fa,0 16px 40px rgba(96,165,250,.15)}
 body.theme-light .rt-log-row           {background:rgba(0,0,0,.04)}
-body.theme-light .rt-log-row .rn       {color:#94a3b8}
+body.theme-light .rt-log-row .rn       {color:#475569}
 body.theme-light .rt-log-row .rm       {color:#1e293b}
-body.theme-light .rt-bar-lbl           {color:#94a3b8}
+body.theme-light .rt-bar-lbl           {color:#475569}
 body.theme-light .rt-sum-row           {background:rgba(0,0,0,.04)}
-body.theme-light .rt-sum-row .lbl      {color:#94a3b8}
+body.theme-light .rt-sum-row .lbl      {color:#475569}
 body.theme-light .rt-sum-row .val      {color:#1e293b}
 body.theme-light .rt-rating            {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.06);color:#1e293b}
 body.theme-light .rt-medal-wrap        {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.06)}
 body.theme-light .rt-1v1-col           {background:rgba(0,0,0,.04)}
-body.theme-light .rt-1v1-col h3        {color:#94a3b8}
-body.theme-light .rt-1v1-row .n        {color:#94a3b8}
+body.theme-light .rt-1v1-col h3        {color:#475569}
+body.theme-light .rt-1v1-row .n        {color:#475569}
 body.theme-light .rt-1v1-row .v        {color:#1e293b}
 body.theme-light .rt-1v1-winner        {background:rgba(99,102,241,.07);border-color:rgba(99,102,241,.2);color:#4338ca}
 body.theme-light .rt-handoff-score     {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.06);color:#475569}
 body.theme-light .sdk-diff-title       {color:#0f172a}
 body.theme-light .sdk-diff-name        {color:#0f172a}
-body.theme-light .sdk-diff-clues       {color:#94a3b8}
+body.theme-light .sdk-diff-clues       {color:#475569}
 body.theme-light .sdk-diff-card        {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.07)}
 body.theme-light .sdk-diff-card:hover  {background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.14)}
 body.theme-light .sdk-timer            {color:#1e293b}
@@ -393,11 +393,11 @@ body.theme-light .sdk-tool.active      {background:rgba(146,64,14,.08);border-co
 body.theme-light .sdk-num              {background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.08);color:#1e293b}
 body.theme-light .sdk-num:hover        {background:rgba(0,0,0,.1)}
 body.theme-light .stats-section        {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.06)}
-body.theme-light .stats-section-title  {color:#94a3b8}
+body.theme-light .stats-section-title  {color:#475569}
 body.theme-light .stats-label          {color:#64748b}
 body.theme-light .stats-val            {color:#0f172a}
 body.theme-light .stats-streak         {color:#b45309}
-body.theme-light .stats-streak-label   {color:#94a3b8}
+body.theme-light .stats-streak-label   {color:#475569}
 
 /* ══════════════════════════════════════════════
    ⚡  NEON THEME
