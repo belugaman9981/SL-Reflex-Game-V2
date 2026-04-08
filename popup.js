@@ -260,7 +260,6 @@ document.getElementById  ("btn-lb-play") .addEventListener("click",()=>{refreshS
 document.querySelectorAll(".lb-game-tab").forEach(btn=>btn.addEventListener("click",()=>{lbGame=btn.dataset.game;document.querySelectorAll(".lb-game-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");loadLeaderboard();}));
 document.querySelectorAll(".lb-tab").forEach(btn=>btn.addEventListener("click",()=>{lbTimeTab=btn.dataset.tab;document.querySelectorAll(".lb-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");loadLeaderboard();}));
 
-
 async function openLeaderboard(game, name, score) {
   lbGame = game || "sl";
   lbHighlight = name && score!==null ? {name,score} : null;
