@@ -162,12 +162,12 @@ function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOS
    SWIPE DECK
 ═══════════════════════════════════════════════════ */
 const MODES=[
-  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
-  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
-  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", glow:"rgba(251,191,36,.3)",  accent:"#fbbf24"},
-  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", glow:"rgba(168,139,250,.3)", accent:"#a78bfa"},
-  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", glow:"rgba(20,184,166,.3)",  accent:"#2dd4bf"},
-  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", glow:"rgba(139,92,246,.3)",  accent:"#a78bfa"},
+  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#e0f2fe,#dbeafe)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
+  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#dcfce7,#d1fae5)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
+  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fef9c3,#fef3c7)", glow:"rgba(251,191,36,.3)",  accent:"#fbbf24"},
+  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#f3e8ff,#ede9fe)", glow:"rgba(168,139,250,.3)", accent:"#a78bfa"},
+  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#ccfbf1,#d1fae5)", glow:"rgba(20,184,166,.3)",  accent:"#2dd4bf"},
+  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#f5f3ff,#ede9fe)", glow:"rgba(139,92,246,.3)",  accent:"#a78bfa"},
 ];
 
 let      deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
@@ -191,7 +191,7 @@ function renderDeck(){
   renderCard(backCard,MODES[(deckIdx+1)%MODES.length]);
   renderCard(topCard, MODES[deckIdx%MODES.length]);
   topCard.style.opacity="";topCard.style.transform="";topCard.style.transition="";
-  topCard.style.background=MODES[deckIdx%MODES.length].bg;
+  const _m=MODES[deckIdx%MODES.length];topCard.style.background=document.body.classList.contains("theme-light")?(_m.bgLight||_m.bg):_m.bg;
   backCard.style.transform="scale(.92) translateY(10px)";backCard.style.transition="";
   getStampP().style.opacity=getStampS().style.opacity="0";
 }
