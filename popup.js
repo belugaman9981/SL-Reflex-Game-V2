@@ -38,12 +38,36 @@ function getPlayerId(){
 
 async function trackEvent(eventName, game=null, meta=null){
   try{
-    await dbInsert("player_events",{
+    return await dbInsert("player_events",{
       player_id:getPlayerId(),
       event_name:eventName,
       game,
       meta:meta||{},
     });
+  }catch{return false;}
+}
+
+function getInstallTimestamp(){
+  try{
+    const k="sl_install_ts";
+    let ts=localStorage.getItem(k);
+    if(!ts){
+      ts=new Date().toISOString();
+      localStorage.setItem(k,ts);
+    }
+    return ts;
+  }catch{return new Date().toISOString();}
+}
+
+async function ensureInstallEventTracked(){
+  try{
+    const sentKey="sl_install_event_sent";
+    if(localStorage.getItem(sentKey)==="1") return;
+    const ok=await trackEvent("extension_installed",null,{
+      installed_at:getInstallTimestamp(),
+      timezone_offset_min:new Date().getTimezoneOffset(),
+    });
+    if(ok) localStorage.setItem(sentKey,"1");
   }catch{}
 }
 
@@ -743,6 +767,7 @@ document.getElementById("btn-music").addEventListener("click", () => { toggleMus
 /* ─── init ──────────────────────────────────── */
 applyTheme(getTheme());
 updateMusicBtn();
+void ensureInstallEventTracked();
 void trackEvent("popup_open");
 if(getMusicPref()) startMusic();
 
