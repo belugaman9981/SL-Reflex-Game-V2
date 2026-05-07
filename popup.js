@@ -127,7 +127,33 @@ const SCREEN_IDS = [
 function showScreen(name) {
   SCREEN_IDS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
-    if (el) el.classList.toggle("hidden", s !== name);
+    if (el) {
+      const active = s === name;
+      el.classList.toggle("hidden", !active);
+      if (active) {
+        el.classList.remove("screen-enter");
+        void el.offsetWidth;
+        el.classList.add("screen-enter");
+      }
+    }
+  });
+}
+
+function setupSmoothUI(){
+  document.addEventListener("pointerdown",e=>{
+    const btn=e.target.closest("button");
+    if(!btn)return;
+    btn.classList.remove("pop-tap");
+    void btn.offsetWidth;
+    btn.classList.add("pop-tap");
+  });
+
+  document.addEventListener("pointermove",e=>{
+    const r=document.body.getBoundingClientRect();
+    const mx=((e.clientX-r.left)/Math.max(1,r.width))*100;
+    const my=((e.clientY-r.top)/Math.max(1,r.height))*100;
+    document.body.style.setProperty("--mx",`${mx.toFixed(1)}%`);
+    document.body.style.setProperty("--my",`${my.toFixed(1)}%`);
   });
 }
 
@@ -781,6 +807,7 @@ document.getElementById("btn-music").addEventListener("click", () => { toggleMus
 /* ─── init ──────────────────────────────────── */
 applyTheme(getTheme());
 updateMusicBtn();
+setupSmoothUI();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
 if(getMusicPref()) startMusic();
