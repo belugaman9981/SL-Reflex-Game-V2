@@ -5,11 +5,20 @@
 const SUPABASE_URL = "https://bewcczyvubbczmikmtbr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Puy6k3tff5rEfb-Ld08HUg_X5hgFHYB";
 
+function sbHeaders(extra={}){
+  const h = {"apikey":SUPABASE_KEY, ...extra};
+  // Only legacy anon/service keys are JWTs and valid Bearer tokens.
+  if((SUPABASE_KEY.match(/\./g)||[]).length===2){
+    h["Authorization"] = `Bearer ${SUPABASE_KEY}`;
+  }
+  return h;
+}
+
 async function dbInsert(table, row) {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method:"POST",
-      headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`,"Prefer":"return=minimal"},
+      headers:sbHeaders({"Content-Type":"application/json","Prefer":"return=minimal"}),
       body:JSON.stringify(row),
     });
     return r.ok;
@@ -19,7 +28,7 @@ async function dbSelect(table, params) {
   try {
     const qs = new URLSearchParams(params).toString();
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${qs}`, {
-      headers:{"apikey":SUPABASE_KEY,"Authorization":`Bearer ${SUPABASE_KEY}`},
+      headers:sbHeaders(),
     });
     return r.ok ? r.json() : [];
   } catch { return []; }
