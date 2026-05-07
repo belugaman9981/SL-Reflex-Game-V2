@@ -387,6 +387,7 @@ const SL_MAX_LEVEL=10;
 let slScore=0,slLevel=1,slCurrent="",slAlive=false,slTime=60,slMaxTime=60;
 let slTimer=null,slIdle=null,slCombo=0,slGhost=false,slGhostTO=null,slEndScore=0,slEndLevel=1;
 let slSelectedTime=60,slLives=false,slLivesCount=0,slShield=false,slMaxCombo=0;
+let slEnding=false,slNextTO=null;
 
 const letterEl=document.getElementById("letter"),hudScore=document.getElementById("hud-score"),hudLevel=document.getElementById("hud-level"),hudTime=document.getElementById("hud-time"),timerBar=document.getElementById("timer-bar"),comboEl=document.getElementById("sl-combo");
 
@@ -405,13 +406,14 @@ function stopSLTimer() {clearInterval(slTimer);}
 function startSLTimer(){stopSLTimer();if(slSelectedTime===99){updateHud();return;}slTime=slMaxTime=slSelectedTime;updateHud();slTimer=setInterval(()=>{slTime--;updateHud();if(slTime<=0){slTime=0;slEnd("time");}},1000);}
 function startIdle()   {clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
 function stopIdle()    {clearTimeout(slIdle);}
+function scheduleSLNext(delay=0){clearTimeout(slNextTO);slNextTO=setTimeout(()=>{if(!slAlive)return;slNext();startIdle();},delay);}
 function slRandom()    {const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
 const    SL_KEYS=      {S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
 function slNext()      {slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
 function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
-function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slShield=false;slLivesCount=slLives?3:0;showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();setTimeout(()=>{slNext();startIdle();},600);}
+function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();scheduleSLNext(600);}
 function updateLivesHud(){const el=document.getElementById("lives-hud");if(!el)return;el.textContent="❤️".repeat(Math.max(0,slLivesCount))+"💔".repeat(Math.max(0,3-slLivesCount));}
 
 document.addEventListener("keydown",e=>{
@@ -429,7 +431,7 @@ document.addEventListener("keydown",e=>{
     if(slCombo===20&&!slShield)slShield=true;
     slFlash("correct");updateCombo();
     const newLevel=getLevelForScore(slScore);
-    if(newLevel>slLevel){slLevel=newLevel;updateHud();SFX.levelup();const rect=letterEl.getBoundingClientRect();spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2);letterEl.textContent=slLevel===SL_MAX_LEVEL?"MAX LVL!!!":`LVL ${slLevel}!`;letterEl.className="letter-tile";stopIdle();setTimeout(()=>{slNext();startIdle();},600);return;}
+    if(newLevel>slLevel){slLevel=newLevel;updateHud();SFX.levelup();const rect=letterEl.getBoundingClientRect();spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2);letterEl.textContent=slLevel===SL_MAX_LEVEL?"MAX LVL!!!":`LVL ${slLevel}!`;letterEl.className="letter-tile";stopIdle();scheduleSLNext(600);return;}
     updateHud();slNext();startIdle();
   } else {
     SFX.wrong();slFlash("wrong");shakeEl(letterEl);
@@ -446,7 +448,10 @@ document.addEventListener("keydown",e=>{
 });
 
 function slEnd(reason){
+  if(slEnding||!slAlive)return;
+  slEnding=true;
   slAlive=false;stopSLTimer();stopIdle();clearTimeout(slGhostTO);
+  clearTimeout(slNextTO);
   slEndScore=slScore;slEndLevel=slLevel;
   const isNewBest=slScore>getHS();saveHS(slScore);
   updateSLStats(slScore,slLevel,slMaxCombo);
