@@ -3,7 +3,7 @@
    SUPABASE
 ═══════════════════════════════════════════════════ */
 const SUPABASE_URL = "https://bewcczyvubbczmikmtbr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxbHZyeW9wcGJobWR6amR4bmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODc5ODIsImV4cCI6MjA5MDY2Mzk4Mn0.yfKVfiJIW0bQBZ8jb-93AqgXUXQstAfAR5Z4YaVQtnY";
+const SUPABASE_KEY = "sb_publishable_Puy6k3tff5rEfb-Ld08HUg_X5hgFHYB";
 
 async function dbInsert(table, row) {
   try {
