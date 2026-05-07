@@ -2,7 +2,7 @@
 /* ═══════════════════════════════════════════════════
    SUPABASE
 ═══════════════════════════════════════════════════ */
-const SUPABASE_URL = "https://jqlvryoppbhmdzjdxnjq.supabase.co";
+const SUPABASE_URL = "https://bewcczyvubbczmikmtbr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxbHZyeW9wcGJobWR6amR4bmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwODc5ODIsImV4cCI6MjA5MDY2Mzk4Mn0.yfKVfiJIW0bQBZ8jb-93AqgXUXQstAfAR5Z4YaVQtnY";
 
 async function dbInsert(table, row) {
@@ -23,6 +23,28 @@ async function dbSelect(table, params) {
     });
     return r.ok ? r.json() : [];
   } catch { return []; }
+}
+
+function getPlayerId(){
+  try{
+    const k="sl_player_id";
+    const existing=localStorage.getItem(k);
+    if(existing) return existing;
+    const id=(globalThis.crypto&&crypto.randomUUID)?crypto.randomUUID():`p_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;
+    localStorage.setItem(k,id);
+    return id;
+  }catch{return `p_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;}
+}
+
+async function trackEvent(eventName, game=null, meta=null){
+  try{
+    await dbInsert("player_events",{
+      player_id:getPlayerId(),
+      event_name:eventName,
+      game,
+      meta:meta||{},
+    });
+  }catch{}
 }
 
 /* ═══════════════════════════════════════════════════
@@ -241,6 +263,7 @@ document.getElementById("name-input").addEventListener("keydown",e=>{ if(e.key==
 async function doSubmit() {
   const name = (document.getElementById("name-input").value.trim().slice(0,16)) || "Anonymous";
   const flag = selectedFlag;
+  void trackEvent("submit_clicked", lbGame || null, {name_len:name.length});
   saveName(name); saveFlag(flag);
   SFX.submit();
   const btn = document.getElementById("btn-submit-score");
@@ -355,7 +378,7 @@ function slNext()      {slCurrent=slRandom();letterEl.textContent=slCurrent;lett
 function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
-function startSL(){slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slShield=false;slLivesCount=slLives?3:0;showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();setTimeout(()=>{slNext();startIdle();},600);}
+function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slShield=false;slLivesCount=slLives?3:0;showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();setTimeout(()=>{slNext();startIdle();},600);}
 function updateLivesHud(){const el=document.getElementById("lives-hud");if(!el)return;el.textContent="❤️".repeat(Math.max(0,slLivesCount))+"💔".repeat(Math.max(0,3-slLivesCount));}
 
 document.addEventListener("keydown",e=>{
@@ -404,7 +427,7 @@ function slEnd(reason){
     async(name,flag)=>{
       if(name){
         const ok=await dbInsert("game_scores",{name,flag,game:"sl",score:slEndScore,meta:{level:slEndLevel}});
-        if(ok){unlockAch("first_score");await openLeaderboard("sl",name,slEndScore);}
+        if(ok){void trackEvent("submit_success","sl",{score:slEndScore});unlockAch("first_score");await openLeaderboard("sl",name,slEndScore);}
         else{alert("Submit failed — check your connection");goHome();}
       } else {
         openLeaderboard("sl",null,null);
@@ -431,7 +454,7 @@ document.getElementById("btn-rt-1v1-home")  .addEventListener("click",goHome);
 
 function rtReset(){clearTimeout(rtDelay);rtWaiting=rtActive=rtFakeActive=false;rtGoTime=null;}
 function rtSetState(s,e,l){rtTileEl.className=`rt-tile ${s}`;rtTileT.textContent=e;rtTileL.textContent=l;}
-function startRT(is1v1){rt1v1=is1v1;rtPhase=1;rtP1Times=[];rtRound=0;rtTimes=[];rtLog.innerHTML="";document.getElementById("rt-mode-badge").textContent=is1v1?"⚔️ 1v1":"";showScreen("rt");rtNextRound();}
+function startRT(is1v1){void trackEvent("game_started",is1v1?"rt_1v1":"rt");rt1v1=is1v1;rtPhase=1;rtP1Times=[];rtRound=0;rtTimes=[];rtLog.innerHTML="";document.getElementById("rt-mode-badge").textContent=is1v1?"⚔️ 1v1":"";showScreen("rt");rtNextRound();}
 
 function rtNextRound(){rtRound++;rtRoundL.textContent=`${rt1v1?`P${rtPhase} · `:""}Round ${rtRound} / ${RT_ROUNDS}`;rtSub.textContent="Green = GO  ·  Red = don't press!";rtSetState("waiting","⏳","Get ready…");rtWaiting=true;rtActive=rtFakeActive=false;rtGoTime=null;const td=1800+Math.random()*2700,hf=Math.random()<.3,fa=td*(.3+Math.random()*.3);if(hf){rtDelay=setTimeout(()=>{if(!rtWaiting)return;rtFakeActive=true;rtSetState("fake","🔴","Don't press!");SFX.rtFake();setTimeout(()=>{if(rtFakeActive){rtFakeActive=false;rtSetState("waiting","⏳","Stay sharp…");}},500);},fa);}setTimeout(()=>{clearTimeout(rtDelay);if(!rtWaiting)return;rtSetState("ready","👀","Almost…");rtDelay=setTimeout(()=>{rtWaiting=false;rtActive=true;rtGoTime=performance.now();rtSetState("go","GO!","Press SPACE!");SFX.rtGo();},350+Math.random()*300);},td);}
 
@@ -448,7 +471,7 @@ function rtSubmit(){
     async(name,flag)=>{
       if(name){
         const ok=await dbInsert("game_scores",{name,flag,game:"rt",score:avg,meta:{best,rounds:RT_ROUNDS}});
-        if(ok){unlockAch("first_score");await openLeaderboard("rt",name,avg);}
+        if(ok){void trackEvent("submit_success","rt",{score:avg,best});unlockAch("first_score");await openLeaderboard("rt",name,avg);}
         else{alert("Submit failed");showScreen("rt-end");}
       } else {openLeaderboard("rt",null,null);}
     }
@@ -501,7 +524,7 @@ function sdkMakePuzzle(sol,clues,rng){const p=sol.map(r=>[...r]);const cells=sdk
 function sdkStartTimer(){sdkSecs=0;sdkTimerEl.textContent="0:00";clearInterval(sdkTimerInt);sdkTimerInt=setInterval(()=>{sdkSecs++;const m=Math.floor(sdkSecs/60),s=sdkSecs%60;sdkTimerEl.textContent=`${m}:${String(s).padStart(2,"0")}`;},1000);}
 function sdkStopTimer(){clearInterval(sdkTimerInt);}
 
-function startSudoku(diff,isDaily,rng){sdkIsDaily=!!isDaily;sdkDifficulty=diff||"Medium";sdkDiffEl.textContent=isDaily?"Daily":diff;sdkBoard=sdkGenerate(rng);sdkPuzzle=sdkMakePuzzle(sdkBoard,SDK_CLUES[diff]||30,rng);sdkPlayer=sdkPuzzle.map(r=>[...r]);sdkMistakes=0;sdkSelected=null;sdkHintsUsed=0;sdkMistEl.textContent="✕ 0 / 3";sdkNotesCells=Array.from({length:9},()=>Array.from({length:9},()=>new Set()));sdkSetNotesMode(false);showScreen("sudoku");sdkRenderBoard();sdkUpdateNumpad();updateHintBtn();sdkStartTimer();}
+function startSudoku(diff,isDaily,rng){void trackEvent("game_started",isDaily?"sudoku_daily":"sudoku",{difficulty:diff||"Medium"});sdkIsDaily=!!isDaily;sdkDifficulty=diff||"Medium";sdkDiffEl.textContent=isDaily?"Daily":diff;sdkBoard=sdkGenerate(rng);sdkPuzzle=sdkMakePuzzle(sdkBoard,SDK_CLUES[diff]||30,rng);sdkPlayer=sdkPuzzle.map(r=>[...r]);sdkMistakes=0;sdkSelected=null;sdkHintsUsed=0;sdkMistEl.textContent="✕ 0 / 3";sdkNotesCells=Array.from({length:9},()=>Array.from({length:9},()=>new Set()));sdkSetNotesMode(false);showScreen("sudoku");sdkRenderBoard();sdkUpdateNumpad();updateHintBtn();sdkStartTimer();}
 function startDailyChallenge(){startSudoku("Medium",true,mkRng(dateSeed()));}
 function sdkSetNotesMode(on){sdkNotesMode=on;document.body.classList.toggle("notes-mode",on);document.getElementById("btn-sdk-notes").classList.toggle("active",on);}
 function sdkAutoNotes(){SFX.click();for(let r=0;r<9;r++)for(let c=0;c<9;c++){if(sdkPlayer[r][c]!==0||sdkPuzzle[r][c]!==0)continue;sdkNotesCells[r][c].clear();for(let n=1;n<=9;n++)if(sdkIsValid(sdkPlayer,r,c,n))sdkNotesCells[r][c].add(n);}sdkRenderBoard();if(sdkSelected)sdkHighlight(sdkSelected.r,sdkSelected.c);}
@@ -541,7 +564,7 @@ function sdkSubmitScore(){
     async(name,flag)=>{
       if(name){
         const ok=await dbInsert("game_scores",{name,flag,game:"sudoku",score:sdkSecs,meta:{mistakes:sdkMistakes,difficulty:sdkDifficulty}});
-        if(ok){unlockAch("first_score");await openLeaderboard("sudoku",name,sdkSecs);}
+        if(ok){void trackEvent("submit_success","sudoku",{score:sdkSecs,mistakes:sdkMistakes,difficulty:sdkDifficulty});unlockAch("first_score");await openLeaderboard("sudoku",name,sdkSecs);}
         else{alert("Submit failed");showScreen("sudoku-win");}
       } else {openLeaderboard("sudoku",null,null);}
     }
@@ -720,5 +743,6 @@ document.getElementById("btn-music").addEventListener("click", () => { toggleMus
 /* ─── init ──────────────────────────────────── */
 applyTheme(getTheme());
 updateMusicBtn();
+void trackEvent("popup_open");
 if(getMusicPref()) startMusic();
 
