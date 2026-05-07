@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
 *,*::before,*::after{box-sizing: border-box; margin: 0; padding: 0}
 
-body{width: 480px; height: 610px; padding: 16px 20px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Space Grotesk',system-ui,sans-serif; --mx:50%; --my:30%; background: radial-gradient(120% 120% at 20% 0%,#1e293b 0%,transparent 40%),radial-gradient(220px 220px at var(--mx) var(--my),rgba(96,165,250,.13),transparent 70%),linear-gradient(145deg,#0b1220,#1f2933); color: #e5e7eb; user-select: none; border-radius: 18px; overflow: hidden; transition: background-position .2s ease}
+body{width: 480px; height: 610px; padding: 16px 20px 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Space Grotesk',system-ui,sans-serif; --mx:50%; --my:30%; background: radial-gradient(120% 120% at 20% 0%,#78350f 0%,transparent 42%),radial-gradient(240px 240px at var(--mx) var(--my),rgba(251,146,60,.2),transparent 72%),linear-gradient(145deg,#1b1208,#3b2412); color: #f5ede2; user-select: none; border-radius: 18px; overflow: hidden; transition: background-position .2s ease}
 
 .screen       {display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 10px}
 .screen.hidden{display: none}
@@ -20,7 +20,7 @@ button.pop-tap{animation:btnPop .18s ease-out}
 .ach-toast.show        {transform: translateX(-50%) translateY(0)}
 
 /* ── SWIPE DECK ───────────────────────────────── */
-.swipe-eyebrow       {font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #475569; margin-bottom: -4px}
+.swipe-eyebrow       {font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #d6a77a; margin-bottom: -4px}
 .swipe-deck-wrap     {position: relative; width: 268px; height: 278px; flex-shrink: 0}
 .swipe-card          {position: absolute; inset: 0; border-radius: 22px; padding: 20px 20px 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; overflow: hidden; cursor: grab; will-change: transform; background: #0d1829; isolation: isolate}
 .swipe-card:active   {cursor: grabbing}
@@ -42,10 +42,10 @@ button.pop-tap{animation:btnPop .18s ease-out}
 .swipe-btn:active    {transform: scale(.94)}
 .swipe-btn.nope:hover{background: rgba(239,68,68,.25)}
 .swipe-btn.like:hover{background: rgba(34,197,94,.25)}
-.swipe-hint          {font-size: 11px; color: #334155; margin-top: -4px; letter-spacing: .03em}
+.swipe-hint          {font-size: 11px; color: #c68e59; margin-top: -4px; letter-spacing: .03em}
 
 /* ── SHARED ───────────────────────────────────── */
-.game-title         {font-size: 32px; font-weight: 800; background: linear-gradient(135deg,#60a5fa,#a78bfa); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px}
+.game-title         {font-size: 32px; font-weight: 800; background: linear-gradient(135deg,#fdba74,#f97316); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px}
 .instructions       {background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 13px; padding: 10px 16px; width: 100%; display: flex; flex-direction: column; gap: 6px}
 .instructions h2    {font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 1px}
 .rule-row           {display: flex; align-items: center; gap: 9px; font-size: 12px}
@@ -62,17 +62,17 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 .end-score span     {color: #e2e8f0; font-weight: 700}
 .trophy             {font-size: 50px; animation: bounce .6s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes bounce   {from{transform: scale(0) rotate(-20deg); opacity: 0}to{transform: scale(1) rotate(0); opacity: 1}}
-.btn-restart        {padding: 9px 22px; font-size: 13px; font-weight: 700; font-family: inherit; color: #e2e8f0; background: linear-gradient(180deg,#3b82f6,#1d4ed8); border: none; border-radius: 11px; cursor: pointer; transition: transform .12s,box-shadow .12s; box-shadow: 0 8px 20px rgba(37,99,235,.45)}
-.btn-restart:hover  {transform: translateY(-2px); box-shadow: 0 12px 24px rgba(37,99,235,.55)}
+.btn-restart        {padding: 9px 22px; font-size: 13px; font-weight: 700; font-family: inherit; color: #fff7ed; background: linear-gradient(180deg,#fb923c,#ea580c); border: none; border-radius: 11px; cursor: pointer; transition: transform .12s,box-shadow .12s; box-shadow: 0 8px 20px rgba(234,88,12,.45)}
+.btn-restart:hover  {transform: translateY(-2px); box-shadow: 0 12px 24px rgba(234,88,12,.56)}
 .btn-restart:active {transform: translateY(2px)}
-.btn-ghost-btn      {padding: 5px 13px; font-size: 12px; font-weight: 600; font-family: inherit; color: #64748b; background: transparent; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; cursor: pointer; transition: color .15s,border-color .15s}
-.btn-ghost-btn:hover{color: #94a3b8; border-color: rgba(255,255,255,.18)}
+.btn-ghost-btn      {padding: 5px 13px; font-size: 12px; font-weight: 600; font-family: inherit; color: #c99263; background: transparent; border: 1px solid rgba(251,146,60,.24); border-radius: 8px; cursor: pointer; transition: color .15s,border-color .15s}
+.btn-ghost-btn:hover{color: #f7cba2; border-color: rgba(251,146,60,.45)}
 .btn-ghost-btn.small{padding: 3px 9px; font-size: 11px}
 
 /* ── HUD ──────────────────────────────────────── */
 .hud                {display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 2px 2px; font-size: 12px; font-weight: 600; color: #94a3b8}
 .hud-score          {color: #e2e8f0; font-size: 14px; font-weight: 700}
-.hud-level          {color: #60a5fa}
+.hud-level          {color: #fb923c}
 .hud-time           {color: #f59e0b}
 .ghost-hud          {font-size: 15px; animation: pulse 1s ease-in-out infinite}
 .timer-bar-wrap     {width: 100%; height: 5px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden}
@@ -88,9 +88,9 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 .sl-options         {display: flex; gap: 8px; width: 100%; align-items: stretch}
 .option-toggle      {flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 7px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; font-family: inherit; font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; transition: all .15s}
 .option-toggle:hover{background: rgba(255,255,255,.08); color: #94a3b8}
-.option-toggle.on   {background: rgba(168,139,250,.12); border-color: rgba(168,139,250,.4); color: #a78bfa}
+.option-toggle.on   {background: rgba(251,146,60,.17); border-color: rgba(251,146,60,.5); color: #fdba74}
 .option-state       {font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.08)}
-.option-state.on    {background: rgba(168,139,250,.25); color: #a78bfa}
+.option-state.on    {background: rgba(251,146,60,.3); color: #fdba74}
 .time-select        {display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; padding: 5px 8px}
 .time-label         {font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .06em; margin-right: 2px}
 .time-btn           {padding: 3px 8px; font-size: 11px; font-weight: 700; font-family: inherit; color: #64748b; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; transition: all .12s}
@@ -109,7 +109,7 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 .flag-grid::-webkit-scrollbar-thumb{background: #334155; border-radius: 4px}
 .flag-opt                          {font-size: 16px; cursor: pointer; padding: 3px; border-radius: 5px; text-align: center; transition: background .1s; border: 1px solid transparent}
 .flag-opt:hover                    {background: rgba(255,255,255,.1)}
-.flag-opt.selected                 {background: rgba(96,165,250,.2); border-color: rgba(96,165,250,.5)}
+.flag-opt.selected                 {background: rgba(251,146,60,.22); border-color: rgba(251,146,60,.52)}
 
 .name-input             {width: 100%; padding: 9px 13px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); border-radius: 10px; font-family: inherit; font-size: 14px; font-weight: 600; color: #e2e8f0; outline: none; transition: border-color .15s; text-align: center}
 .name-input:focus       {border-color: rgba(96,165,250,.6); background: rgba(255,255,255,.09)}
@@ -119,7 +119,7 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 /* ── LEADERBOARD ──────────────────────────────── */
 #screen-leaderboard{justify-content: flex-start; padding-top: 4px; gap: 7px}
 .lb-header         {display: flex; justify-content: space-between; align-items: center; width: 100%}
-.lb-title          {font-size: 17px; font-weight: 800; background: linear-gradient(135deg,#60a5fa,#a78bfa); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent}
+.lb-title          {font-size: 17px; font-weight: 800; background: linear-gradient(135deg,#fdba74,#f97316); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent}
 
 .lb-game-tabs                          {display: flex; gap: 5px; width: 100%}
 .lb-game-tab                           {flex: 1; padding: 7px 4px; font-family: inherit; font-size: 12px; font-weight: 700; color: #64748b; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; cursor: pointer; transition: all .12s}
@@ -130,7 +130,7 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 
 .lb-time-tabs {display: flex; gap: 5px; width: 100%}
 .lb-tab       {flex: 1; padding: 5px; font-family: inherit; font-size: 11px; font-weight: 700; color: #475569; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); border-radius: 7px; cursor: pointer; transition: all .12s; text-transform: uppercase; letter-spacing: .05em}
-.lb-tab.active{color: #60a5fa; background: rgba(96,165,250,.1); border-color: rgba(96,165,250,.3)}
+.lb-tab.active{color: #fdba74; background: rgba(251,146,60,.14); border-color: rgba(251,146,60,.42)}
 
 .lb-list                         {width: 100%; display: flex; flex-direction: column; gap: 3px; flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #334155 transparent; max-height: 280px}
 .lb-list::-webkit-scrollbar      {width: 4px}
@@ -139,14 +139,14 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 .lb-error                        {font-size: 12px; color: #f87171; text-align: center; padding: 10px 0}
 
 .lb-row              {display: grid; grid-template-columns: 28px 20px 1fr auto auto; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.04); font-size: 12px; animation: slideIn .2s ease both}
-.lb-row.you          {background: rgba(96,165,250,.12); border: 1px solid rgba(96,165,250,.25)}
+.lb-row.you          {background: rgba(251,146,60,.14); border: 1px solid rgba(251,146,60,.33)}
 .lb-row.top1         {background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.2)}
 @keyframes slideIn   {from{transform: translateY(5px); opacity: 0}to{transform: translateY(0); opacity: 1}}
 .lb-rank             {font-weight: 800; color: #475569; font-size: 11px}
 .lb-row.top1 .lb-rank{color: #fbbf24}
 .lb-flag             {font-size: 14px; line-height: 1}
 .lb-name             {font-weight: 700; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap}
-.lb-row.you .lb-name {color: #93c5fd}
+.lb-row.you .lb-name {color: #fdba74}
 .lb-score            {font-weight: 800; color: #e2e8f0; text-align: right; white-space: nowrap}
 .lb-meta             {font-size: 10px; color: #64748b; text-align: right; white-space: nowrap}
 
@@ -284,22 +284,22 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 
 /* ── HOME CONTROLS ───────────────────────────── */
 .home-controls    {display:flex;gap:8px;margin-top:-2px}
-.home-ctrl-btn    {padding:5px 13px;font-size:11px;font-weight:700;font-family:inherit;color:#475569;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:20px;cursor:pointer;transition:all .18s;letter-spacing:.03em}
-.home-ctrl-btn:hover{background:rgba(255,255,255,.1);color:#94a3b8}
-.home-ctrl-btn.on {background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#818cf8}
+.home-ctrl-btn    {padding:5px 13px;font-size:11px;font-weight:700;font-family:inherit;color:#d7a275;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.24);border-radius:20px;cursor:pointer;transition:all .18s;letter-spacing:.03em}
+.home-ctrl-btn:hover{background:rgba(251,146,60,.18);color:#ffd6b0}
+.home-ctrl-btn.on {background:rgba(249,115,22,.25);border-color:rgba(249,115,22,.5);color:#ffcc99}
 
 /* ══════════════════════════════════════════════
    ☀️  LIGHT THEME
 ══════════════════════════════════════════════ */
-body.theme-light{background:linear-gradient(145deg,#dce6f7,#eef2f8);color:#1e293b}
+body.theme-light{background:linear-gradient(145deg,#fdf2e2,#f7e2c9);color:#3a2415}
 body.theme-light .swipe-eyebrow,body.theme-light .swipe-hint{color:#475569}
 body.theme-light .swipe-card           {background:linear-gradient(180deg,#ffffff,#f0f7ff);box-shadow:0 12px 36px rgba(14,165,233,.15)}
 body.theme-light .card-name            {color:#0f172a}
 body.theme-light .card-desc            {color:#111827}
 body.theme-light .card-tag             {background:rgba(255,255,255,.3);color:#111827;border-color:rgba(17,24,39,.18)}
-body.theme-light .home-ctrl-btn        {color:#0369a1;background:rgba(14,165,233,.12);border-color:rgba(14,165,233,.35)}
-body.theme-light .home-ctrl-btn:hover  {background:rgba(14,165,233,.22);color:#0284c7}
-body.theme-light .home-ctrl-btn.on     {background:rgba(14,165,233,.22);border-color:rgba(14,165,233,.6);color:#0369a1}
+body.theme-light .home-ctrl-btn        {color:#9a3412;background:rgba(251,146,60,.14);border-color:rgba(251,146,60,.38)}
+body.theme-light .home-ctrl-btn:hover  {background:rgba(251,146,60,.24);color:#c2410c}
+body.theme-light .home-ctrl-btn.on     {background:rgba(249,115,22,.26);border-color:rgba(249,115,22,.58);color:#9a3412}
 body.theme-light .ach-badge:hover::after{background:#f8fafc;border-color:#e2e8f0;color:#334155}
 body.theme-light .ach-toast            {background:#f8fafc;border-color:#e2e8f0;color:#b45309}
 body.theme-light .instructions         {background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.07)}
@@ -327,10 +327,10 @@ body.theme-light .time-btn             {color:#0284c7}
 body.theme-light .time-btn:hover       {background:rgba(14,165,233,.12);color:#0369a1}
 body.theme-light .time-btn.active      {color:#fff;background:rgba(14,165,233,.85);border-color:rgba(14,165,233,.9)}
 body.theme-light .sl-highscore-wrap    {color:#475569}
-body.theme-light .btn-restart          {background:linear-gradient(180deg,#0ea5e9,#0284c7);box-shadow:0 8px 20px rgba(14,165,233,.4);color:#fff}
-body.theme-light .btn-restart:hover    {box-shadow:0 12px 28px rgba(14,165,233,.55)}
-body.theme-light .btn-ghost-btn        {color:#0284c7;border-color:rgba(14,165,233,.35)}
-body.theme-light .btn-ghost-btn:hover  {color:#0369a1;border-color:rgba(14,165,233,.6)}
+body.theme-light .btn-restart          {background:linear-gradient(180deg,#fb923c,#ea580c);box-shadow:0 8px 20px rgba(234,88,12,.35);color:#fff}
+body.theme-light .btn-restart:hover    {box-shadow:0 12px 28px rgba(234,88,12,.5)}
+body.theme-light .btn-ghost-btn        {color:#c2410c;border-color:rgba(251,146,60,.4)}
+body.theme-light .btn-ghost-btn:hover  {color:#9a3412;border-color:rgba(249,115,22,.62)}
 body.theme-light .end-score            {color:#64748b}
 body.theme-light .end-score span       {color:#1e293b;font-weight:700}
 body.theme-light .name-input           {background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
@@ -340,7 +340,7 @@ body.theme-light .flag-grid            {background:rgba(0,0,0,.02);border-color:
 body.theme-light .flag-selected        {background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
 body.theme-light .flag-opt:hover       {background:rgba(0,0,0,.08)}
 body.theme-light .flag-opt.selected    {background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.4)}
-body.theme-light .lb-title             {background:linear-gradient(135deg,#1d4ed8,#7c3aed);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+body.theme-light .lb-title             {background:linear-gradient(135deg,#ea580c,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 body.theme-light .lb-game-tab          {background:rgba(14,165,233,.07);border-color:rgba(14,165,233,.18);color:#0284c7}
 body.theme-light .lb-game-tab.active   {color:#fff;background:rgba(14,165,233,.8);border-color:rgba(14,165,233,.9)}
 body.theme-light .lb-tab               {background:rgba(14,165,233,.06);border-color:rgba(14,165,233,.15);color:#0284c7}
