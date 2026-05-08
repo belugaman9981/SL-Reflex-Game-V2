@@ -1,19 +1,23 @@
 
 /* ═══════════════════════════════════════════════════
    SUPABASE
+   All game scores and events are stored in Supabase (a hosted Postgres DB).
+   We call its REST API directly from the browser — no backend needed.
 ═══════════════════════════════════════════════════ */
 const SUPABASE_URL = "https://bewcczyvubbczmikmtbr.supabase.co";
+// Publishable key — safe to expose; Row Level Security controls access on the DB side.
 const SUPABASE_KEY = "sb_publishable_Puy6k3tff5rEfb-Ld08HUg_X5hgFHYB";
 
 function sbHeaders(extra={}){
   const h = {"apikey":SUPABASE_KEY, ...extra};
-  // Only legacy anon/service keys are JWTs and valid Bearer tokens.
+  // Only legacy anon/service keys are JWTs (3 dot-separated segments) and need Bearer auth.
   if((SUPABASE_KEY.match(/\./g)||[]).length===2){
     h["Authorization"] = `Bearer ${SUPABASE_KEY}`;
   }
   return h;
 }
 
+// "return=minimal" tells Supabase not to send back the inserted row — saves bandwidth.
 async function dbInsert(table, row) {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -34,6 +38,8 @@ async function dbSelect(table, params) {
   } catch { return []; }
 }
 
+// Creates or retrieves a persistent anonymous ID stored in localStorage.
+// Falls back to a timestamp+random string if crypto.randomUUID isn't available.
 function getPlayerId(){
   try{
     const k="sl_player_id";
@@ -45,6 +51,7 @@ function getPlayerId(){
   }catch{return `p_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;}
 }
 
+// Sends an analytics event row to Supabase. Silent failure is fine — analytics aren't critical.
 async function trackEvent(eventName, game=null, meta=null){
   try{
     return await dbInsert("player_events",{
@@ -56,6 +63,7 @@ async function trackEvent(eventName, game=null, meta=null){
   }catch{return false;}
 }
 
+// Records when the extension was first opened so we can report an install timestamp.
 function getInstallTimestamp(){
   try{
     const k="sl_install_ts";
@@ -68,6 +76,7 @@ function getInstallTimestamp(){
   }catch{return new Date().toISOString();}
 }
 
+// Fires the "extension_installed" event exactly once, using a sentinel flag in localStorage.
 async function ensureInstallEventTracked(){
   try{
     const sentKey="sl_install_event_sent";
@@ -82,6 +91,8 @@ async function ensureInstallEventTracked(){
 
 /* ═══════════════════════════════════════════════════
    FLAGS
+   List of country flag emojis shown in the flag picker.
+   The first two ("🌍", "🏳️") are non-country defaults.
 ═══════════════════════════════════════════════════ */
 const FLAGS = [
   "🌍","🏳️","🇦🇺","🇦🇹","🇧🇪","🇧🇷","🇨🇦","🇨🇱","🇨🇳","🇨🇴",
@@ -94,6 +105,7 @@ const FLAGS = [
 
 let selectedFlag = "🌍";
 
+// Populates the flag grid in the name-entry screen and highlights the saved flag.
 function buildFlagPicker() {
   const grid = document.getElementById("flag-grid");
   const saved = getSavedFlag();
@@ -117,7 +129,10 @@ function buildFlagPicker() {
 
 /* ═══════════════════════════════════════════════════
    SCREENS
+   All screens share the same full-size space; only one is visible at a time.
+   showScreen() hides all others and triggers an enter animation on the active one.
 ═══════════════════════════════════════════════════ */
+// All possible screen IDs — must match the id="screen-*" elements in HTML.
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
@@ -131,6 +146,7 @@ function showScreen(name) {
       const active = s === name;
       el.classList.toggle("hidden", !active);
       if (active) {
+        // Force reflow so the CSS animation re-triggers even if screen was recently shown.
         el.classList.remove("screen-enter");
         void el.offsetWidth;
         el.classList.add("screen-enter");
@@ -139,6 +155,8 @@ function showScreen(name) {
   });
 }
 
+// Adds a small "pop" animation to every button tap and tracks the cursor position
+// as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
@@ -159,10 +177,16 @@ function setupSmoothUI(){
 
 /* ═══════════════════════════════════════════════════
    AUDIO
+   All sounds are synthesized on-the-fly using the Web Audio API — no audio files needed.
+   The AudioContext is lazily created on first use and resumed on every call because
+   browsers block audio until a user gesture has occurred.
 ═══════════════════════════════════════════════════ */
 let _actx = null;
+// Returns the shared AudioContext, creating and/or resuming it as needed.
 function ac() { if(!_actx)_actx=new(window.AudioContext||window.webkitAudioContext)(); if(_actx.state==="suspended")_actx.resume(); return _actx; }
+// Plays a single synthesized tone: freq (Hz), waveform type, duration (s), volume, start delay (s).
 function beep(freq,type,dur,vol=0.24,delay=0){try{const ctx=ac(),osc=ctx.createOscillator(),g=ctx.createGain();osc.connect(g);g.connect(ctx.destination);osc.type=type;osc.frequency.value=freq;const t=ctx.currentTime+delay;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);osc.start(t);osc.stop(t+dur);}catch(_){}}
+// Named sound effects — each schedules one or more beeps to create the desired sound.
 const SFX={
   correct()  {beep(880,"sine",.07,.2);},
   wrong()    {beep(140,"sawtooth",.16,.28);},
@@ -184,7 +208,10 @@ function spawnParticles(x,y,count=14){const colors=["#60a5fa","#a78bfa","#4ade80
 
 /* ═══════════════════════════════════════════════════
    ACHIEVEMENTS
+   Achievements are stored as { [id]: timestamp } in localStorage under "ach".
+   Unlocking is idempotent — unlocking the same achievement twice does nothing.
 ═══════════════════════════════════════════════════ */
+// Definition of all achievements: icon, display name, and unlock description.
 const ACH={
   first_score:  {icon:"🏆",label:"First Score",   desc:"Submit to leaderboard"},
   on_fire:      {icon:"🔥",label:"On Fire",        desc:"15x combo in SL"},
@@ -209,6 +236,8 @@ function renderAchBar(){const bar=document.getElementById("ach-bar"),a=getAch();
 
 /* ═══════════════════════════════════════════════════
    LOCAL STORAGE
+   Thin wrappers around localStorage with try/catch so the extension
+   still works in environments where storage is blocked.
 ═══════════════════════════════════════════════════ */
 function getHS()       {try{return parseInt(localStorage.getItem("sl_hs")||"0");}catch{return 0;}}
 function saveHS(s)     {try{if(s>getHS())localStorage.setItem("sl_hs",s);}catch{}}
@@ -219,6 +248,8 @@ function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
 
 /* ═══════════════════════════════════════════════════
    STATS
+   Per-game personal records persisted as a single JSON object in localStorage.
+   Each game sub-object is created lazily on first play.
 ═══════════════════════════════════════════════════ */
 function getStats(){try{return JSON.parse(localStorage.getItem("player_stats")||"{}");}catch{return{};}}
 function saveStats(s){try{localStorage.setItem("player_stats",JSON.stringify(s));}catch{}}
@@ -227,21 +258,32 @@ function updateRTStats(avg,best){const s=getStats();if(!s.rt)s.rt={games:0,bestA
 function updateSDKStats(secs,mistakes){const s=getStats();if(!s.sdk)s.sdk={games:0,bestTime:0,bestMistakes:99};s.sdk.games++;if(!s.sdk.bestTime||secs<s.sdk.bestTime)s.sdk.bestTime=secs;if(mistakes<s.sdk.bestMistakes)s.sdk.bestMistakes=mistakes;saveStats(s);}
 
 /* ─────────────────────────────────────────────── */
+// Returns current streak count; resets to 0 if the player missed yesterday.
 function getDailyStreak(){try{const today=new Date().toISOString().slice(0,10),yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10),last=localStorage.getItem("daily_last")||"",streak=parseInt(localStorage.getItem("daily_streak")||"0");if(last===today||last===yesterday)return streak;return 0;}catch{return 0;}}
+// Increments streak when called today for the first time; unlocks milestone achievements.
 function saveDailyStreak(){try{const today=new Date().toISOString().slice(0,10),yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10),last=localStorage.getItem("daily_last")||"";if(last===today)return;let streak=parseInt(localStorage.getItem("daily_streak")||"0");streak=last===yesterday?streak+1:1;localStorage.setItem("daily_streak",streak);localStorage.setItem("daily_last",today);if(streak>=3)unlockAch("daily_3");if(streak>=7)unlockAch("lucky_7");}catch{}}
 function renderStatsScreen(){const s=getStats(),sl=s.sl||{games:0,bestScore:0,bestLevel:0,bestCombo:0},rt=s.rt||{games:0,bestAvg:9999,bestSingle:9999},sdk=s.sdk||{games:0,bestTime:0,bestMistakes:99},streak=getDailyStreak();document.getElementById("stats-sl-games").textContent=sl.games;document.getElementById("stats-sl-best").textContent=sl.bestScore?`${sl.bestScore} pts`:"–";document.getElementById("stats-sl-combo").textContent=sl.bestCombo?`${sl.bestCombo}x`:"–";document.getElementById("stats-rt-games").textContent=rt.games;document.getElementById("stats-rt-best-avg").textContent=rt.bestAvg<9999?`${rt.bestAvg} ms`:"–";document.getElementById("stats-rt-best-single").textContent=rt.bestSingle<9999?`${rt.bestSingle} ms`:"–";document.getElementById("stats-sdk-games").textContent=sdk.games;if(sdk.bestTime){const m=Math.floor(sdk.bestTime/60),sc=sdk.bestTime%60;document.getElementById("stats-sdk-best").textContent=`${m}:${String(sc).padStart(2,"0")}`;}else{document.getElementById("stats-sdk-best").textContent="–";}document.getElementById("stats-streak-num").textContent=streak||0;}
 
 /* ═══════════════════════════════════════════════════
    SEEDED RNG
+   A deterministic pseudo-random number generator (Mulberry32 algorithm).
+   Used so the Daily Sudoku puzzle is identical for every player on a given day.
 ═══════════════════════════════════════════════════ */
+// Returns a seeded RNG function that produces values in [0, 1).
 function mkRng        (seed){let s=seed>>>0;return()=>{s=Math.imul(s^s>>>15,s|1);s^=s+Math.imul(s^s>>>7,s|61);return((s^s>>>14)>>>0)/0xffffffff;};}
+// Converts today's date to an integer (e.g. 20260507) — used as the daily seed.
 function dateSeed     (){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
 function isDailyDone  (){try{return localStorage.getItem("daily_date")===new Date().toISOString().slice(0,10);}catch{return false;}}
 function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOString().slice(0,10));}catch{}unlockAch("daily_done");}
 
 /* ═══════════════════════════════════════════════════
    SWIPE DECK
+   Tinder-style card swiping UI for choosing a game mode.
+   - Swipe/drag right (or press ▶) → PLAY the current mode.
+   - Swipe/drag left (or press ✕) → SKIP to the next mode.
+   Two cards are stacked: "top" (interactive) and "back" (peek of next).
 ═══════════════════════════════════════════════════ */
+// Each entry describes one game mode shown on the swipe deck cards.
 const MODES=[
   {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
   {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
@@ -256,6 +298,7 @@ const    topCard=document.getElementById("swipe-top"),backCard=document.getEleme
 function getStampP(){return document.getElementById("stamp-play");}
 function getStampS(){return document.getElementById("stamp-skip");}
 function isLightTheme(){return document.body.classList.contains("theme-light");}
+// Drag must exceed this pixel threshold to trigger a fly-off; max rotation in degrees; fly distance in px.
 const    THRESH=72,MAX_ROT=18,FLY=520;
 
 function renderCard(el,m){
