@@ -380,7 +380,10 @@ async function doSubmit() {
 
 /* ═══════════════════════════════════════════════════
    LEADERBOARD (all games)
+   One shared leaderboard screen with tabs to switch between games (SL/RT/Sudoku)
+   and time filters (All Time / This Week / Today).
 ═══════════════════════════════════════════════════ */
+// Active game tab, active time tab, and the entry to highlight as "you" after submitting.
 let lbGame="sl", lbTimeTab="all", lbHighlight=null;
 
 document.getElementById  ("btn-lb-close").addEventListener("click",goHome);
@@ -404,6 +407,7 @@ function lbScoreLabel(game, score, meta) {
   if (game==="sl")     return `${score} pts`;
   if (game==="rt")     return `${score} ms avg`;
   if (game==="sudoku") {
+    // Sudoku stores score as elapsed seconds — convert to m:ss display.
     const m=Math.floor(score/60), s=score%60;
     return `${m}:${String(s).padStart(2,"0")}`;
   }
@@ -418,7 +422,7 @@ function lbMetaLabel(game, meta) {
   return "";
 }
 
-// Lower is better for RT and Sudoku
+// Lower is better for RT (fastest reaction) and Sudoku (shortest time); SL is higher-is-better.
 function lbOrderParam(game) {
   return game==="sl" ? "score.desc" : "score.asc";
 }
@@ -448,12 +452,25 @@ async function loadLeaderboard() {
   document.getElementById("lb-your-rank").textContent=yourRank;
 }
 
+// Sanitizes user-supplied text for safe HTML injection (prevents XSS in leaderboard names).
 function esc(s){return(s||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));}
 
 /* ═══════════════════════════════════════════════════
    SL CHALLENGE
+   The core game: a letter sequence (S, L, SS, LL, SL, LS) flashes on screen
+   and the player must press the matching key as fast as possible.
+
+   Rules (stored in SL_KEYS):
+     S  → press S       L  → press L
+     SS → press L       LL → press S   (opposite for doubles!)
+     SL → press SPACE   LS → press SPACE
+
+   Scoring: each correct press = 1 pt + combo bonus.
+   Speed increases with level. Ghost mode hides the letter after 220ms.
 ═══════════════════════════════════════════════════ */
+// Milliseconds allowed per turn at each level (level 10 = 750ms — very fast!).
 const SL_SPEED={1:5000,2:4500,3:3800,4:3200,5:2600,6:2100,7:1700,8:1300,9:1000,10:750};
+// Score thresholds needed to reach each level (index 0 = level 1, etc.).
 const SL_LEVELS=[0,10,20,35,50,70,95,125,160,200];
 const SL_MAX_LEVEL=10;
 
@@ -480,10 +497,15 @@ function startSLTimer(){stopSLTimer();if(slSelectedTime===99){updateHud();return
 function startIdle()   {clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
 function stopIdle()    {clearTimeout(slIdle);}
 function scheduleSLNext(delay=0){clearTimeout(slNextTO);slNextTO=setTimeout(()=>{if(!slAlive)return;slNext();startIdle();},delay);}
+// Picks a random sequence of 1 or 2 characters from {S, L}.
 function slRandom()    {const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
+// Maps each possible sequence to the correct key the player must press.
+// Singles → matching key; doubles (SS/LL) → opposite key; mixed (SL/LS) → space.
 const    SL_KEYS=      {S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
+// Shows the next sequence and starts the ghost timer (hides letter after 220ms if ghost mode on).
 function slNext()      {slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
 function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
+// Updates the combo badge; shows the shield icon (🛡️) when the combo shield is active.
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
 function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();scheduleSLNext(600);}
@@ -498,9 +520,12 @@ document.addEventListener("keydown",e=>{
   letterEl.classList.add("pressed");setTimeout(()=>letterEl.classList.remove("pressed"),110);
   if(e.key===SL_KEYS[slCurrent]){
     slCombo++;if(slCombo>slMaxCombo)slMaxCombo=slCombo;
+    // Bonus points scale with combo: +1 at 5x, +2 at 10x, +4 at 20x.
     const bonus=slCombo>=20?4:slCombo>=10?2:slCombo>=5?1:0;slScore+=1+bonus;SFX.combo(slCombo);
     if(slCombo>=15)unlockAch("on_fire");if(slScore>=100)unlockAch("centurion");if(slCombo>=25)unlockAch("combinator");
+    // 10x combo adds 3s to the timer (reward for streaks in timed modes).
     if(slCombo===10&&slSelectedTime!==99){slTime=Math.min(slTime+3,slMaxTime);updateHud();}
+    // At 20x combo the player earns a shield that absorbs one wrong answer.
     if(slCombo===20&&!slShield)slShield=true;
     slFlash("correct");updateCombo();
     const newLevel=getLevelForScore(slScore);
@@ -549,6 +574,9 @@ function slEnd(reason){
 
 /* ═══════════════════════════════════════════════════
    REACTION TEST
+   5 rounds. A tile turns green — press SPACE as fast as possible.
+   Red tiles ("fakes") and pressing before the tile turns green ("early")
+   are both penalised. 1v1 mode lets two players alternate on one device.
 ═══════════════════════════════════════════════════ */
 const RT_ROUNDS=5;
 let rtRound=0,rtTimes=[],rtGoTime=null,rtWaiting=false,rtActive=false,rtDelay=null,rtFakeActive=false,rt1v1=false,rtPhase=1,rtP1Times=[];
@@ -571,6 +599,7 @@ function rtNextRound(){rtRound++;rtRoundL.textContent=`${rt1v1?`P${rtPhase} · `
 
 function rtHandleSpace(){if(document.getElementById("screen-rt").classList.contains("hidden"))return;if(rtFakeActive){rtFakeActive=false;rtWaiting=false;rtActive=false;clearTimeout(rtDelay);rtSetState("early","⚠️","Fake-out!");SFX.rtEarly();rtTimes.push("fake");rtAddLog(rtRound,"fake");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtWaiting){clearTimeout(rtDelay);rtWaiting=false;rtSetState("early","⚠️","Too early!");SFX.rtEarly();rtTimes.push("early");rtAddLog(rtRound,"early");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtActive){const ms=Math.round(performance.now()-rtGoTime);rtActive=false;rtTimes.push(ms);const sp=ms<230?"fast":ms<380?"medium":"slow";rtSetState("done","✓",`${ms} ms`);rtTileT.style.fontSize="30px";rtTileT.style.color=sp==="fast"?"#22c55e":sp==="medium"?"#f59e0b":"#f87171";rtAddLog(rtRound,ms,sp);if(ms<200)unlockAch("cyborg");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(()=>{rtTileT.style.fontSize=rtTileT.style.color="";rtNextRound();},950);}}
 function rtAddLog(round,ms,speed){const row=document.createElement("div");row.className="rt-log-row";const cls=ms==="early"?"early":ms==="fake"?"fake":speed;const txt=ms==="early"?"⚠ Early":ms==="fake"?"🔴 Faked":`${ms} ms`;row.innerHTML=`<span class="rn">Round ${round}</span><span class="rm ${cls}">${txt}</span>`;rtLog.appendChild(row);}
+// Calculates average of valid (numeric) reaction times; returns null if none.
 function rtCalcAvg(times){const v=times.filter(t=>typeof t==="number");return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null;}
 function rtDone(){if(rt1v1&&rtPhase===1){rtP1Times=[...rtTimes];document.getElementById("rt-handoff-num").textContent="2";const avg=rtCalcAvg(rtP1Times);document.getElementById("rt-handoff-preview").textContent=avg?`Player 1 avg: ${avg} ms`:"Player 1 done";showScreen("rt-handoff");}else if(rt1v1&&rtPhase===2){rtShow1v1();}else{rtShowResults(rtTimes);}}
 function rtStartP2(){rtPhase=2;rtRound=0;rtTimes=[];rtLog.innerHTML="";document.getElementById("rt-mode-badge").textContent="⚔️ 1v1";showScreen("rt");rtNextRound();}
@@ -604,7 +633,11 @@ document.addEventListener("keydown",e=>{if(e.key!==" ")return;if(!document.getEl
 
 /* ═══════════════════════════════════════════════════
    SUDOKU
+   Generates a valid 9×9 Sudoku puzzle with a unique solution.
+   Process: generate a full solved board → remove cells while checking uniqueness.
+   Notes mode lets players pencil in candidate digits before committing.
 ═══════════════════════════════════════════════════ */
+// Number of pre-filled "clue" cells per difficulty (fewer = harder).
 const SDK_CLUES={Easy:38,Medium:30,Hard:24};
 let sdkBoard=[],sdkPuzzle=[],sdkPlayer=[],sdkNotesCells=[];
 let sdkMistakes=0,sdkSelected=null,sdkSecs=0,sdkTimerInt=null,sdkNotesMode=false,sdkIsDaily=false,sdkDifficulty="Medium",sdkHintsUsed=0;
@@ -626,11 +659,16 @@ document.getElementById("sdk-numpad").addEventListener("click",e=>{const b=e.tar
 
 document.addEventListener("keydown",e=>{if(document.getElementById("screen-sudoku").classList.contains("hidden"))return;if(e.key==="n"||e.key==="N"){sdkSetNotesMode(!sdkNotesMode);return;}if(e.key>="1"&&e.key<="9"){sdkInput(Number(e.key));return;}if(e.key==="Backspace"||e.key==="Delete"||e.key==="0"){sdkInput(0);return;}if(!sdkSelected)return;let{r,c}=sdkSelected;if(e.key==="ArrowUp"){e.preventDefault();r=(r+8)%9;}if(e.key==="ArrowDown"){e.preventDefault();r=(r+1)%9;}if(e.key==="ArrowLeft"){e.preventDefault();c=(c+8)%9;}if(e.key==="ArrowRight"){e.preventDefault();c=(c+1)%9;}sdkSelect(r,c);});
 
+// Fisher-Yates shuffle, optionally using a seeded RNG so the result is reproducible.
 function sdkShuffle(arr,rng){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor((rng||Math.random)()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Returns true if placing n at (r,c) violates no row, column, or 3×3 box constraint.
 function sdkIsValid(board,r,c,n){for(let i=0;i<9;i++)if(board[r][i]===n||board[i][c]===n)return false;const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(board[br+i][bc+j]===n)return false;return true;}
+// Backtracking solver — also used to verify uniqueness (stops after finding 2 solutions).
 function sdkSolve(board,rng){for(let r=0;r<9;r++)for(let c=0;c<9;c++){if(board[r][c]===0){for(const n of sdkShuffle([1,2,3,4,5,6,7,8,9],rng)){if(sdkIsValid(board,r,c,n)){board[r][c]=n;if(sdkSolve(board,rng))return true;board[r][c]=0;}}return false;}}return true;}
 function sdkGenerate(rng){const b=Array.from({length:9},()=>Array(9).fill(0));sdkSolve(b,rng);return b;}
+// Checks that the board has exactly one solution (count > 1 → puzzle is ambiguous).
 function sdkUnique(board){let count=0;function go(b){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(b[r][c]===0){for(let n=1;n<=9;n++)if(sdkIsValid(b,r,c,n)){b[r][c]=n;go(b);if(count>1)return;b[r][c]=0;}return;}count++;}go(board.map(r=>[...r]));return count===1;}
+// Removes cells from a solved board one-by-one (random order) while uniqueness holds.
 function sdkMakePuzzle(sol,clues,rng){const p=sol.map(r=>[...r]);const cells=sdkShuffle(Array.from({length:81},(_,i)=>i),rng);let filled=81;for(const idx of cells){if(filled<=clues)break;const r=Math.floor(idx/9),c=idx%9,bk=p[r][c];p[r][c]=0;filled--;if(!sdkUnique(p)){p[r][c]=bk;filled++;}}return p;}
 function sdkStartTimer(){sdkSecs=0;sdkTimerEl.textContent="0:00";clearInterval(sdkTimerInt);sdkTimerInt=setInterval(()=>{sdkSecs++;const m=Math.floor(sdkSecs/60),s=sdkSecs%60;sdkTimerEl.textContent=`${m}:${String(s).padStart(2,"0")}`;},1000);}
 function sdkStopTimer(){clearInterval(sdkTimerInt);}
@@ -687,11 +725,14 @@ function sdkUpdateNumpad(){const cnt=Array(10).fill(0);for(let r=0;r<9;r++)for(l
 /* ═══════════════════════════════════════════════════
    HINT SYSTEM
 ═══════════════════════════════════════════════════ */
+// Fills in a random empty cell with the correct answer — uses up one of 3 hints.
 function sdkUseHint(){if(3-sdkHintsUsed<=0)return;const empties=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});if(!empties.length)return;const {r,c}=empties[Math.floor(Math.random()*empties.length)];sdkPlayer[r][c]=sdkBoard[r][c];sdkNotesCells[r][c].clear();sdkClearPeerNotes(r,c,sdkBoard[r][c]);sdkRefreshCell(r,c);sdkApplyConflicts();sdkHighlight(r,c);sdkUpdateNumpad();sdkHintsUsed++;updateHintBtn();SFX.correct();if(sdkCheckWin())sdkWin();}
 function updateHintBtn(){const btn=document.getElementById("btn-sdk-hint");if(!btn)return;const left=3-sdkHintsUsed;btn.querySelector("span").textContent=`Hint (${left})`;btn.disabled=left<=0;btn.style.opacity=left<=0?"0.4":"1";}
 
 /* ═══════════════════════════════════════════════════
    RT MEDAL
+   Awards a gold/silver/bronze medal based on average reaction time.
+   No medal is given if avg >= 320ms.
 ═══════════════════════════════════════════════════ */
 function rtGetMedal(avg){if(avg===null)return null;if(avg<200)return{icon:"🥇",label:"Gold",color:"#fbbf24",desc:"under 200ms avg"};if(avg<250)return{icon:"🥈",label:"Silver",color:"#94a3b8",desc:"under 250ms avg"};if(avg<320)return{icon:"🥉",label:"Bronze",color:"#cd7f32",desc:"under 320ms avg"};return null;}
 
@@ -719,6 +760,8 @@ document.addEventListener("keydown",e=>{
 
 /* ═══════════════════════════════════════════════════
    THEMES  (dark → light → neon)
+   Cycling applies a CSS class to <body>; CSS rules in popup.css handle the rest.
+   The deck is re-rendered because card colours depend on the active theme.
 ═══════════════════════════════════════════════════ */
 const THEMES       = ["dark","light","neon"];
 const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light", neon:"⚡ Neon"};
@@ -746,7 +789,10 @@ document.getElementById("btn-theme").addEventListener("click", cycleTheme);
 
 /* ═══════════════════════════════════════════════════
    BACKGROUND MUSIC  (Web Audio API, no external files)
-   Calm ambient pad + slow pentatonic arpeggio
+   Calm ambient pad + slow pentatonic arpeggio — all synthesized in the browser.
+   The pad is 3 detuned sine waves on low C/G/C filtered through a slow LFO
+   that "breathes" the cutoff frequency. The arpeggio walks a pattern through
+   a C major pentatonic scale with random timing gaps for a natural feel.
 ═══════════════════════════════════════════════════ */
 let _musicOn   = false;
 let _musicMaster = null;
@@ -766,6 +812,7 @@ function startMusic() {
   if(_musicOn) return;
   _musicOn = true;
   const ctx = ac();
+  // Fade master volume in over 2.5s to avoid a jarring start.
   const master = ctx.createGain();
   master.gain.setValueAtTime(0, ctx.currentTime);
   master.gain.linearRampToValueAtTime(0.13, ctx.currentTime + 2.5);
@@ -806,6 +853,7 @@ function startMusic() {
   updateMusicBtn();
 }
 
+  // Schedules a single arpeggio note and queues the next one after a random gap.
 function _scheduleArp() {
   if(!_musicOn) return;
   const ctx  = ac();
@@ -852,6 +900,8 @@ function updateMusicBtn() {
 document.getElementById("btn-music").addEventListener("click", () => { toggleMusic(); SFX.click(); });
 
 /* ─── init ──────────────────────────────────── */
+// Run once on popup open: restore theme, sync music button, wire up UI polish,
+// send analytics, and resume music if the player left it on.
 applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
