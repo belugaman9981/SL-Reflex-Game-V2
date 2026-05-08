@@ -1,19 +1,23 @@
 
 /* ═══════════════════════════════════════════════════
    SUPABASE
+   All game scores and events are stored in Supabase (a hosted Postgres DB).
+   We call its REST API directly from the browser — no backend needed.
 ═══════════════════════════════════════════════════ */
 const SUPABASE_URL = "https://bewcczyvubbczmikmtbr.supabase.co";
+// Publishable key — safe to expose; Row Level Security controls access on the DB side.
 const SUPABASE_KEY = "sb_publishable_Puy6k3tff5rEfb-Ld08HUg_X5hgFHYB";
 
 function sbHeaders(extra={}){
   const h = {"apikey":SUPABASE_KEY, ...extra};
-  // Only legacy anon/service keys are JWTs and valid Bearer tokens.
+  // Only legacy anon/service keys are JWTs (3 dot-separated segments) and need Bearer auth.
   if((SUPABASE_KEY.match(/\./g)||[]).length===2){
     h["Authorization"] = `Bearer ${SUPABASE_KEY}`;
   }
   return h;
 }
 
+// "return=minimal" tells Supabase not to send back the inserted row — saves bandwidth.
 async function dbInsert(table, row) {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -34,6 +38,8 @@ async function dbSelect(table, params) {
   } catch { return []; }
 }
 
+// Creates or retrieves a persistent anonymous ID stored in localStorage.
+// Falls back to a timestamp+random string if crypto.randomUUID isn't available.
 function getPlayerId(){
   try{
     const k="sl_player_id";
@@ -45,6 +51,7 @@ function getPlayerId(){
   }catch{return `p_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;}
 }
 
+// Sends an analytics event row to Supabase. Silent failure is fine — analytics aren't critical.
 async function trackEvent(eventName, game=null, meta=null){
   try{
     return await dbInsert("player_events",{
@@ -56,6 +63,7 @@ async function trackEvent(eventName, game=null, meta=null){
   }catch{return false;}
 }
 
+// Records when the extension was first opened so we can report an install timestamp.
 function getInstallTimestamp(){
   try{
     const k="sl_install_ts";
@@ -68,6 +76,7 @@ function getInstallTimestamp(){
   }catch{return new Date().toISOString();}
 }
 
+// Fires the "extension_installed" event exactly once, using a sentinel flag in localStorage.
 async function ensureInstallEventTracked(){
   try{
     const sentKey="sl_install_event_sent";
@@ -82,6 +91,8 @@ async function ensureInstallEventTracked(){
 
 /* ═══════════════════════════════════════════════════
    FLAGS
+   List of country flag emojis shown in the flag picker.
+   The first two ("🌍", "🏳️") are non-country defaults.
 ═══════════════════════════════════════════════════ */
 const FLAGS = [
   "🌍","🏳️","🇦🇺","🇦🇹","🇧🇪","🇧🇷","🇨🇦","🇨🇱","🇨🇳","🇨🇴",
@@ -94,6 +105,7 @@ const FLAGS = [
 
 let selectedFlag = "🌍";
 
+// Populates the flag grid in the name-entry screen and highlights the saved flag.
 function buildFlagPicker() {
   const grid = document.getElementById("flag-grid");
   const saved = getSavedFlag();
@@ -117,7 +129,10 @@ function buildFlagPicker() {
 
 /* ═══════════════════════════════════════════════════
    SCREENS
+   All screens share the same full-size space; only one is visible at a time.
+   showScreen() hides all others and triggers an enter animation on the active one.
 ═══════════════════════════════════════════════════ */
+// All possible screen IDs — must match the id="screen-*" elements in HTML.
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
@@ -131,6 +146,7 @@ function showScreen(name) {
       const active = s === name;
       el.classList.toggle("hidden", !active);
       if (active) {
+        // Force reflow so the CSS animation re-triggers even if screen was recently shown.
         el.classList.remove("screen-enter");
         void el.offsetWidth;
         el.classList.add("screen-enter");
@@ -139,6 +155,8 @@ function showScreen(name) {
   });
 }
 
+// Adds a small "pop" animation to every button tap and tracks the cursor position
+// as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
@@ -159,10 +177,16 @@ function setupSmoothUI(){
 
 /* ═══════════════════════════════════════════════════
    AUDIO
+   All sounds are synthesized on-the-fly using the Web Audio API — no audio files needed.
+   The AudioContext is lazily created on first use and resumed on every call because
+   browsers block audio until a user gesture has occurred.
 ═══════════════════════════════════════════════════ */
 let _actx = null;
+// Returns the shared AudioContext, creating and/or resuming it as needed.
 function ac() { if(!_actx)_actx=new(window.AudioContext||window.webkitAudioContext)(); if(_actx.state==="suspended")_actx.resume(); return _actx; }
+// Plays a single synthesized tone: freq (Hz), waveform type, duration (s), volume, start delay (s).
 function beep(freq,type,dur,vol=0.24,delay=0){try{const ctx=ac(),osc=ctx.createOscillator(),g=ctx.createGain();osc.connect(g);g.connect(ctx.destination);osc.type=type;osc.frequency.value=freq;const t=ctx.currentTime+delay;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);osc.start(t);osc.stop(t+dur);}catch(_){}}
+// Named sound effects — each schedules one or more beeps to create the desired sound.
 const SFX={
   correct()  {beep(880,"sine",.07,.2);},
   wrong()    {beep(140,"sawtooth",.16,.28);},
@@ -184,7 +208,10 @@ function spawnParticles(x,y,count=14){const colors=["#60a5fa","#a78bfa","#4ade80
 
 /* ═══════════════════════════════════════════════════
    ACHIEVEMENTS
+   Achievements are stored as { [id]: timestamp } in localStorage under "ach".
+   Unlocking is idempotent — unlocking the same achievement twice does nothing.
 ═══════════════════════════════════════════════════ */
+// Definition of all achievements: icon, display name, and unlock description.
 const ACH={
   first_score:  {icon:"🏆",label:"First Score",   desc:"Submit to leaderboard"},
   on_fire:      {icon:"🔥",label:"On Fire",        desc:"15x combo in SL"},
@@ -209,6 +236,8 @@ function renderAchBar(){const bar=document.getElementById("ach-bar"),a=getAch();
 
 /* ═══════════════════════════════════════════════════
    LOCAL STORAGE
+   Thin wrappers around localStorage with try/catch so the extension
+   still works in environments where storage is blocked.
 ═══════════════════════════════════════════════════ */
 function getHS()       {try{return parseInt(localStorage.getItem("sl_hs")||"0");}catch{return 0;}}
 function saveHS(s)     {try{if(s>getHS())localStorage.setItem("sl_hs",s);}catch{}}
@@ -219,6 +248,8 @@ function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
 
 /* ═══════════════════════════════════════════════════
    STATS
+   Per-game personal records persisted as a single JSON object in localStorage.
+   Each game sub-object is created lazily on first play.
 ═══════════════════════════════════════════════════ */
 function getStats(){try{return JSON.parse(localStorage.getItem("player_stats")||"{}");}catch{return{};}}
 function saveStats(s){try{localStorage.setItem("player_stats",JSON.stringify(s));}catch{}}
@@ -227,21 +258,32 @@ function updateRTStats(avg,best){const s=getStats();if(!s.rt)s.rt={games:0,bestA
 function updateSDKStats(secs,mistakes){const s=getStats();if(!s.sdk)s.sdk={games:0,bestTime:0,bestMistakes:99};s.sdk.games++;if(!s.sdk.bestTime||secs<s.sdk.bestTime)s.sdk.bestTime=secs;if(mistakes<s.sdk.bestMistakes)s.sdk.bestMistakes=mistakes;saveStats(s);}
 
 /* ─────────────────────────────────────────────── */
+// Returns current streak count; resets to 0 if the player missed yesterday.
 function getDailyStreak(){try{const today=new Date().toISOString().slice(0,10),yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10),last=localStorage.getItem("daily_last")||"",streak=parseInt(localStorage.getItem("daily_streak")||"0");if(last===today||last===yesterday)return streak;return 0;}catch{return 0;}}
+// Increments streak when called today for the first time; unlocks milestone achievements.
 function saveDailyStreak(){try{const today=new Date().toISOString().slice(0,10),yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10),last=localStorage.getItem("daily_last")||"";if(last===today)return;let streak=parseInt(localStorage.getItem("daily_streak")||"0");streak=last===yesterday?streak+1:1;localStorage.setItem("daily_streak",streak);localStorage.setItem("daily_last",today);if(streak>=3)unlockAch("daily_3");if(streak>=7)unlockAch("lucky_7");}catch{}}
 function renderStatsScreen(){const s=getStats(),sl=s.sl||{games:0,bestScore:0,bestLevel:0,bestCombo:0},rt=s.rt||{games:0,bestAvg:9999,bestSingle:9999},sdk=s.sdk||{games:0,bestTime:0,bestMistakes:99},streak=getDailyStreak();document.getElementById("stats-sl-games").textContent=sl.games;document.getElementById("stats-sl-best").textContent=sl.bestScore?`${sl.bestScore} pts`:"–";document.getElementById("stats-sl-combo").textContent=sl.bestCombo?`${sl.bestCombo}x`:"–";document.getElementById("stats-rt-games").textContent=rt.games;document.getElementById("stats-rt-best-avg").textContent=rt.bestAvg<9999?`${rt.bestAvg} ms`:"–";document.getElementById("stats-rt-best-single").textContent=rt.bestSingle<9999?`${rt.bestSingle} ms`:"–";document.getElementById("stats-sdk-games").textContent=sdk.games;if(sdk.bestTime){const m=Math.floor(sdk.bestTime/60),sc=sdk.bestTime%60;document.getElementById("stats-sdk-best").textContent=`${m}:${String(sc).padStart(2,"0")}`;}else{document.getElementById("stats-sdk-best").textContent="–";}document.getElementById("stats-streak-num").textContent=streak||0;}
 
 /* ═══════════════════════════════════════════════════
    SEEDED RNG
+   A deterministic pseudo-random number generator (Mulberry32 algorithm).
+   Used so the Daily Sudoku puzzle is identical for every player on a given day.
 ═══════════════════════════════════════════════════ */
+// Returns a seeded RNG function that produces values in [0, 1).
 function mkRng        (seed){let s=seed>>>0;return()=>{s=Math.imul(s^s>>>15,s|1);s^=s+Math.imul(s^s>>>7,s|61);return((s^s>>>14)>>>0)/0xffffffff;};}
+// Converts today's date to an integer (e.g. 20260507) — used as the daily seed.
 function dateSeed     (){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
 function isDailyDone  (){try{return localStorage.getItem("daily_date")===new Date().toISOString().slice(0,10);}catch{return false;}}
 function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOString().slice(0,10));}catch{}unlockAch("daily_done");}
 
 /* ═══════════════════════════════════════════════════
    SWIPE DECK
+   Tinder-style card swiping UI for choosing a game mode.
+   - Swipe/drag right (or press ▶) → PLAY the current mode.
+   - Swipe/drag left (or press ✕) → SKIP to the next mode.
+   Two cards are stacked: "top" (interactive) and "back" (peek of next).
 ═══════════════════════════════════════════════════ */
+// Each entry describes one game mode shown on the swipe deck cards.
 const MODES=[
   {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
   {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
@@ -256,6 +298,7 @@ const    topCard=document.getElementById("swipe-top"),backCard=document.getEleme
 function getStampP(){return document.getElementById("stamp-play");}
 function getStampS(){return document.getElementById("stamp-skip");}
 function isLightTheme(){return document.body.classList.contains("theme-light");}
+// Drag must exceed this pixel threshold to trigger a fly-off; max rotation in degrees; fly distance in px.
 const    THRESH=72,MAX_ROT=18,FLY=520;
 
 function renderCard(el,m){
@@ -279,6 +322,7 @@ function renderDeck(){
 function setDrag(dx){const r=Math.min(Math.abs(dx)/150,1);topCard.style.transform=`translateX(${dx}px) rotate(${dx/150*MAX_ROT}deg)`;getStampP().style.opacity=dx>0?String(Math.min(r*1.4,1)):"0";getStampS().style.opacity=dx<0?String(Math.min(r*1.4,1)):"0";backCard.style.transform=`scale(${.92+r*.08}) translateY(${10-r*10}px)`;}
 function flyOff(dir){topCard.style.transition="transform .38s cubic-bezier(.25,.8,.5,1),opacity .38s";topCard.style.transform=`translateX(${dir==="right"?FLY:-FLY}px) rotate(${dir==="right"?MAX_ROT:-MAX_ROT}deg)`;topCard.style.opacity="0";backCard.style.transition="transform .38s";backCard.style.transform="scale(1) translateY(0)";setTimeout(()=>{const m=MODES[deckIdx%MODES.length];deckIdx++;dir==="right"?launch(m.id):renderDeck();},380);}
 function snapBack(){topCard.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";topCard.style.transform="";backCard.style.transition="transform .35s";backCard.style.transform="scale(.92) translateY(10px)";getStampP().style.opacity=getStampS().style.opacity="0";}
+// Routes a mode ID to its start function.
 function launch(id){if(id==="sl"){refreshSLScreen();showScreen("start");}else if(id==="rt")startRT(false);else if(id==="sudoku")showScreen("sdk-diff");else if(id==="daily")startDailyChallenge();else if(id==="lb")openLeaderboard("sl",null,null);else if(id==="stats"){renderStatsScreen();showScreen("stats");}}
 
 topCard .addEventListener("pointerdown",e=>{dragging=true;dragStart=e.clientX;dragX=0;ptId=e.pointerId;topCard.setPointerCapture(e.pointerId);topCard.style.transition="";});
@@ -294,8 +338,11 @@ renderDeck();renderAchBar();
 
 /* ═══════════════════════════════════════════════════
    GENERIC NAME+FLAG SUBMIT FLOW
-   Used by SL, RT, Sudoku
+   Used by SL, RT, Sudoku — all three games reuse this single screen
+   to collect the player's name/flag before posting a score.
 ═══════════════════════════════════════════════════ */
+// Stores the async callback supplied by the calling game (e.g. slEnd, rtSubmit).
+// Called with (name, flag) when the player submits, or (null, null) when they skip.
 let _submitCallback = null;
 
 function openNameEntry(titleText, titleClass, scoreLine, isNewBest, callback) {
@@ -333,7 +380,10 @@ async function doSubmit() {
 
 /* ═══════════════════════════════════════════════════
    LEADERBOARD (all games)
+   One shared leaderboard screen with tabs to switch between games (SL/RT/Sudoku)
+   and time filters (All Time / This Week / Today).
 ═══════════════════════════════════════════════════ */
+// Active game tab, active time tab, and the entry to highlight as "you" after submitting.
 let lbGame="sl", lbTimeTab="all", lbHighlight=null;
 
 document.getElementById  ("btn-lb-close").addEventListener("click",goHome);
@@ -357,6 +407,7 @@ function lbScoreLabel(game, score, meta) {
   if (game==="sl")     return `${score} pts`;
   if (game==="rt")     return `${score} ms avg`;
   if (game==="sudoku") {
+    // Sudoku stores score as elapsed seconds — convert to m:ss display.
     const m=Math.floor(score/60), s=score%60;
     return `${m}:${String(s).padStart(2,"0")}`;
   }
@@ -371,7 +422,7 @@ function lbMetaLabel(game, meta) {
   return "";
 }
 
-// Lower is better for RT and Sudoku
+// Lower is better for RT (fastest reaction) and Sudoku (shortest time); SL is higher-is-better.
 function lbOrderParam(game) {
   return game==="sl" ? "score.desc" : "score.asc";
 }
@@ -401,12 +452,25 @@ async function loadLeaderboard() {
   document.getElementById("lb-your-rank").textContent=yourRank;
 }
 
+// Sanitizes user-supplied text for safe HTML injection (prevents XSS in leaderboard names).
 function esc(s){return(s||"").replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));}
 
 /* ═══════════════════════════════════════════════════
    SL CHALLENGE
+   The core game: a letter sequence (S, L, SS, LL, SL, LS) flashes on screen
+   and the player must press the matching key as fast as possible.
+
+   Rules (stored in SL_KEYS):
+     S  → press S       L  → press L
+     SS → press L       LL → press S   (opposite for doubles!)
+     SL → press SPACE   LS → press SPACE
+
+   Scoring: each correct press = 1 pt + combo bonus.
+   Speed increases with level. Ghost mode hides the letter after 220ms.
 ═══════════════════════════════════════════════════ */
+// Milliseconds allowed per turn at each level (level 10 = 750ms — very fast!).
 const SL_SPEED={1:5000,2:4500,3:3800,4:3200,5:2600,6:2100,7:1700,8:1300,9:1000,10:750};
+// Score thresholds needed to reach each level (index 0 = level 1, etc.).
 const SL_LEVELS=[0,10,20,35,50,70,95,125,160,200];
 const SL_MAX_LEVEL=10;
 
@@ -433,10 +497,15 @@ function startSLTimer(){stopSLTimer();if(slSelectedTime===99){updateHud();return
 function startIdle()   {clearTimeout(slIdle);slIdle=setTimeout(()=>{if(slAlive){slNext();startIdle();}},SL_SPEED[slLevel]??750);}
 function stopIdle()    {clearTimeout(slIdle);}
 function scheduleSLNext(delay=0){clearTimeout(slNextTO);slNextTO=setTimeout(()=>{if(!slAlive)return;slNext();startIdle();},delay);}
+// Picks a random sequence of 1 or 2 characters from {S, L}.
 function slRandom()    {const L=["S","L"],n=Math.random()<.5?1:2;let r="";for(let i=0;i<n;i++)r+=L[Math.floor(Math.random()*2)];return r;}
+// Maps each possible sequence to the correct key the player must press.
+// Singles → matching key; doubles (SS/LL) → opposite key; mixed (SL/LS) → space.
 const    SL_KEYS=      {S:"s",L:"l",SS:"l",LL:"s",SL:" ",LS:" "};
+// Shows the next sequence and starts the ghost timer (hides letter after 220ms if ghost mode on).
 function slNext()      {slCurrent=slRandom();letterEl.textContent=slCurrent;letterEl.className="letter-tile";clearTimeout(slGhostTO);if(slGhost)slGhostTO=setTimeout(()=>{if(slAlive){letterEl.textContent="?";letterEl.classList.add("ghost");}},220);}
 function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.classList.remove(cls),240);}
+// Updates the combo badge; shows the shield icon (🛡️) when the combo shield is active.
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
 function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();scheduleSLNext(600);}
@@ -451,9 +520,12 @@ document.addEventListener("keydown",e=>{
   letterEl.classList.add("pressed");setTimeout(()=>letterEl.classList.remove("pressed"),110);
   if(e.key===SL_KEYS[slCurrent]){
     slCombo++;if(slCombo>slMaxCombo)slMaxCombo=slCombo;
+    // Bonus points scale with combo: +1 at 5x, +2 at 10x, +4 at 20x.
     const bonus=slCombo>=20?4:slCombo>=10?2:slCombo>=5?1:0;slScore+=1+bonus;SFX.combo(slCombo);
     if(slCombo>=15)unlockAch("on_fire");if(slScore>=100)unlockAch("centurion");if(slCombo>=25)unlockAch("combinator");
+    // 10x combo adds 3s to the timer (reward for streaks in timed modes).
     if(slCombo===10&&slSelectedTime!==99){slTime=Math.min(slTime+3,slMaxTime);updateHud();}
+    // At 20x combo the player earns a shield that absorbs one wrong answer.
     if(slCombo===20&&!slShield)slShield=true;
     slFlash("correct");updateCombo();
     const newLevel=getLevelForScore(slScore);
@@ -502,6 +574,9 @@ function slEnd(reason){
 
 /* ═══════════════════════════════════════════════════
    REACTION TEST
+   5 rounds. A tile turns green — press SPACE as fast as possible.
+   Red tiles ("fakes") and pressing before the tile turns green ("early")
+   are both penalised. 1v1 mode lets two players alternate on one device.
 ═══════════════════════════════════════════════════ */
 const RT_ROUNDS=5;
 let rtRound=0,rtTimes=[],rtGoTime=null,rtWaiting=false,rtActive=false,rtDelay=null,rtFakeActive=false,rt1v1=false,rtPhase=1,rtP1Times=[];
@@ -524,6 +599,7 @@ function rtNextRound(){rtRound++;rtRoundL.textContent=`${rt1v1?`P${rtPhase} · `
 
 function rtHandleSpace(){if(document.getElementById("screen-rt").classList.contains("hidden"))return;if(rtFakeActive){rtFakeActive=false;rtWaiting=false;rtActive=false;clearTimeout(rtDelay);rtSetState("early","⚠️","Fake-out!");SFX.rtEarly();rtTimes.push("fake");rtAddLog(rtRound,"fake");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtWaiting){clearTimeout(rtDelay);rtWaiting=false;rtSetState("early","⚠️","Too early!");SFX.rtEarly();rtTimes.push("early");rtAddLog(rtRound,"early");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtActive){const ms=Math.round(performance.now()-rtGoTime);rtActive=false;rtTimes.push(ms);const sp=ms<230?"fast":ms<380?"medium":"slow";rtSetState("done","✓",`${ms} ms`);rtTileT.style.fontSize="30px";rtTileT.style.color=sp==="fast"?"#22c55e":sp==="medium"?"#f59e0b":"#f87171";rtAddLog(rtRound,ms,sp);if(ms<200)unlockAch("cyborg");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(()=>{rtTileT.style.fontSize=rtTileT.style.color="";rtNextRound();},950);}}
 function rtAddLog(round,ms,speed){const row=document.createElement("div");row.className="rt-log-row";const cls=ms==="early"?"early":ms==="fake"?"fake":speed;const txt=ms==="early"?"⚠ Early":ms==="fake"?"🔴 Faked":`${ms} ms`;row.innerHTML=`<span class="rn">Round ${round}</span><span class="rm ${cls}">${txt}</span>`;rtLog.appendChild(row);}
+// Calculates average of valid (numeric) reaction times; returns null if none.
 function rtCalcAvg(times){const v=times.filter(t=>typeof t==="number");return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null;}
 function rtDone(){if(rt1v1&&rtPhase===1){rtP1Times=[...rtTimes];document.getElementById("rt-handoff-num").textContent="2";const avg=rtCalcAvg(rtP1Times);document.getElementById("rt-handoff-preview").textContent=avg?`Player 1 avg: ${avg} ms`:"Player 1 done";showScreen("rt-handoff");}else if(rt1v1&&rtPhase===2){rtShow1v1();}else{rtShowResults(rtTimes);}}
 function rtStartP2(){rtPhase=2;rtRound=0;rtTimes=[];rtLog.innerHTML="";document.getElementById("rt-mode-badge").textContent="⚔️ 1v1";showScreen("rt");rtNextRound();}
@@ -557,7 +633,11 @@ document.addEventListener("keydown",e=>{if(e.key!==" ")return;if(!document.getEl
 
 /* ═══════════════════════════════════════════════════
    SUDOKU
+   Generates a valid 9×9 Sudoku puzzle with a unique solution.
+   Process: generate a full solved board → remove cells while checking uniqueness.
+   Notes mode lets players pencil in candidate digits before committing.
 ═══════════════════════════════════════════════════ */
+// Number of pre-filled "clue" cells per difficulty (fewer = harder).
 const SDK_CLUES={Easy:38,Medium:30,Hard:24};
 let sdkBoard=[],sdkPuzzle=[],sdkPlayer=[],sdkNotesCells=[];
 let sdkMistakes=0,sdkSelected=null,sdkSecs=0,sdkTimerInt=null,sdkNotesMode=false,sdkIsDaily=false,sdkDifficulty="Medium",sdkHintsUsed=0;
@@ -579,11 +659,16 @@ document.getElementById("sdk-numpad").addEventListener("click",e=>{const b=e.tar
 
 document.addEventListener("keydown",e=>{if(document.getElementById("screen-sudoku").classList.contains("hidden"))return;if(e.key==="n"||e.key==="N"){sdkSetNotesMode(!sdkNotesMode);return;}if(e.key>="1"&&e.key<="9"){sdkInput(Number(e.key));return;}if(e.key==="Backspace"||e.key==="Delete"||e.key==="0"){sdkInput(0);return;}if(!sdkSelected)return;let{r,c}=sdkSelected;if(e.key==="ArrowUp"){e.preventDefault();r=(r+8)%9;}if(e.key==="ArrowDown"){e.preventDefault();r=(r+1)%9;}if(e.key==="ArrowLeft"){e.preventDefault();c=(c+8)%9;}if(e.key==="ArrowRight"){e.preventDefault();c=(c+1)%9;}sdkSelect(r,c);});
 
+// Fisher-Yates shuffle, optionally using a seeded RNG so the result is reproducible.
 function sdkShuffle(arr,rng){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor((rng||Math.random)()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Returns true if placing n at (r,c) violates no row, column, or 3×3 box constraint.
 function sdkIsValid(board,r,c,n){for(let i=0;i<9;i++)if(board[r][i]===n||board[i][c]===n)return false;const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let i=0;i<3;i++)for(let j=0;j<3;j++)if(board[br+i][bc+j]===n)return false;return true;}
+// Backtracking solver — also used to verify uniqueness (stops after finding 2 solutions).
 function sdkSolve(board,rng){for(let r=0;r<9;r++)for(let c=0;c<9;c++){if(board[r][c]===0){for(const n of sdkShuffle([1,2,3,4,5,6,7,8,9],rng)){if(sdkIsValid(board,r,c,n)){board[r][c]=n;if(sdkSolve(board,rng))return true;board[r][c]=0;}}return false;}}return true;}
 function sdkGenerate(rng){const b=Array.from({length:9},()=>Array(9).fill(0));sdkSolve(b,rng);return b;}
+// Checks that the board has exactly one solution (count > 1 → puzzle is ambiguous).
 function sdkUnique(board){let count=0;function go(b){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(b[r][c]===0){for(let n=1;n<=9;n++)if(sdkIsValid(b,r,c,n)){b[r][c]=n;go(b);if(count>1)return;b[r][c]=0;}return;}count++;}go(board.map(r=>[...r]));return count===1;}
+// Removes cells from a solved board one-by-one (random order) while uniqueness holds.
 function sdkMakePuzzle(sol,clues,rng){const p=sol.map(r=>[...r]);const cells=sdkShuffle(Array.from({length:81},(_,i)=>i),rng);let filled=81;for(const idx of cells){if(filled<=clues)break;const r=Math.floor(idx/9),c=idx%9,bk=p[r][c];p[r][c]=0;filled--;if(!sdkUnique(p)){p[r][c]=bk;filled++;}}return p;}
 function sdkStartTimer(){sdkSecs=0;sdkTimerEl.textContent="0:00";clearInterval(sdkTimerInt);sdkTimerInt=setInterval(()=>{sdkSecs++;const m=Math.floor(sdkSecs/60),s=sdkSecs%60;sdkTimerEl.textContent=`${m}:${String(s).padStart(2,"0")}`;},1000);}
 function sdkStopTimer(){clearInterval(sdkTimerInt);}
@@ -640,11 +725,14 @@ function sdkUpdateNumpad(){const cnt=Array(10).fill(0);for(let r=0;r<9;r++)for(l
 /* ═══════════════════════════════════════════════════
    HINT SYSTEM
 ═══════════════════════════════════════════════════ */
+// Fills in a random empty cell with the correct answer — uses up one of 3 hints.
 function sdkUseHint(){if(3-sdkHintsUsed<=0)return;const empties=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});if(!empties.length)return;const {r,c}=empties[Math.floor(Math.random()*empties.length)];sdkPlayer[r][c]=sdkBoard[r][c];sdkNotesCells[r][c].clear();sdkClearPeerNotes(r,c,sdkBoard[r][c]);sdkRefreshCell(r,c);sdkApplyConflicts();sdkHighlight(r,c);sdkUpdateNumpad();sdkHintsUsed++;updateHintBtn();SFX.correct();if(sdkCheckWin())sdkWin();}
 function updateHintBtn(){const btn=document.getElementById("btn-sdk-hint");if(!btn)return;const left=3-sdkHintsUsed;btn.querySelector("span").textContent=`Hint (${left})`;btn.disabled=left<=0;btn.style.opacity=left<=0?"0.4":"1";}
 
 /* ═══════════════════════════════════════════════════
    RT MEDAL
+   Awards a gold/silver/bronze medal based on average reaction time.
+   No medal is given if avg >= 320ms.
 ═══════════════════════════════════════════════════ */
 function rtGetMedal(avg){if(avg===null)return null;if(avg<200)return{icon:"🥇",label:"Gold",color:"#fbbf24",desc:"under 200ms avg"};if(avg<250)return{icon:"🥈",label:"Silver",color:"#94a3b8",desc:"under 250ms avg"};if(avg<320)return{icon:"🥉",label:"Bronze",color:"#cd7f32",desc:"under 320ms avg"};return null;}
 
@@ -672,6 +760,8 @@ document.addEventListener("keydown",e=>{
 
 /* ═══════════════════════════════════════════════════
    THEMES  (dark → light → neon)
+   Cycling applies a CSS class to <body>; CSS rules in popup.css handle the rest.
+   The deck is re-rendered because card colours depend on the active theme.
 ═══════════════════════════════════════════════════ */
 const THEMES       = ["dark","light","neon"];
 const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light", neon:"⚡ Neon"};
@@ -699,7 +789,10 @@ document.getElementById("btn-theme").addEventListener("click", cycleTheme);
 
 /* ═══════════════════════════════════════════════════
    BACKGROUND MUSIC  (Web Audio API, no external files)
-   Calm ambient pad + slow pentatonic arpeggio
+   Calm ambient pad + slow pentatonic arpeggio — all synthesized in the browser.
+   The pad is 3 detuned sine waves on low C/G/C filtered through a slow LFO
+   that "breathes" the cutoff frequency. The arpeggio walks a pattern through
+   a C major pentatonic scale with random timing gaps for a natural feel.
 ═══════════════════════════════════════════════════ */
 let _musicOn   = false;
 let _musicMaster = null;
@@ -719,6 +812,7 @@ function startMusic() {
   if(_musicOn) return;
   _musicOn = true;
   const ctx = ac();
+  // Fade master volume in over 2.5s to avoid a jarring start.
   const master = ctx.createGain();
   master.gain.setValueAtTime(0, ctx.currentTime);
   master.gain.linearRampToValueAtTime(0.13, ctx.currentTime + 2.5);
@@ -759,6 +853,7 @@ function startMusic() {
   updateMusicBtn();
 }
 
+  // Schedules a single arpeggio note and queues the next one after a random gap.
 function _scheduleArp() {
   if(!_musicOn) return;
   const ctx  = ac();
@@ -805,6 +900,8 @@ function updateMusicBtn() {
 document.getElementById("btn-music").addEventListener("click", () => { toggleMusic(); SFX.click(); });
 
 /* ─── init ──────────────────────────────────── */
+// Run once on popup open: restore theme, sync music button, wire up UI polish,
+// send analytics, and resume music if the player left it on.
 applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
