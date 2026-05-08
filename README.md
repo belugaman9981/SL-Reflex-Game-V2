@@ -10,7 +10,7 @@ the second version of the original sl reflex game
    - Most of the extension logic lives in `popup.js` and most styling lives in `popup.css`, which makes the project harder to debug and maintain as it grows.
 
 3. **Backend/analytics details are hardcoded in the client**
-   - The popup directly contains the Supabase URL/key and sends analytics/leaderboard traffic from the client, which creates privacy, security, and maintainability concerns.
+   - The popup directly contains the Supabase URL and publishable key and sends analytics/leaderboard traffic from the client, which creates privacy, security, and maintainability concerns.
 
 4. **Error handling is minimal**
    - Network failures mostly fall back to empty states or simple alerts, so users do not get much guidance when leaderboard/submission features fail.
