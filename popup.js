@@ -338,8 +338,11 @@ renderDeck();renderAchBar();
 
 /* ═══════════════════════════════════════════════════
    GENERIC NAME+FLAG SUBMIT FLOW
-   Used by SL, RT, Sudoku
+   Used by SL, RT, Sudoku — all three games reuse this single screen
+   to collect the player's name/flag before posting a score.
 ═══════════════════════════════════════════════════ */
+// Stores the async callback supplied by the calling game (e.g. slEnd, rtSubmit).
+// Called with (name, flag) when the player submits, or (null, null) when they skip.
 let _submitCallback = null;
 
 function openNameEntry(titleText, titleClass, scoreLine, isNewBest, callback) {
