@@ -197,11 +197,11 @@ function showScreen(name) {
 // Adds a small "pop" animation to every button tap and tracks the cursor position
 // as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
-  let glowFrame=null;
-  let targetMx=50;
-  let targetMy=30;
-  let currentMx=50;
-  let currentMy=30;
+  let glowFrame= null;
+  let targetMx=  50;
+  let targetMy=  30;
+  let currentMx= 50;
+  let currentMy= 30;
 
   const tickGlow=()=>{
     currentMx += (targetMx-currentMx)*0.14;
