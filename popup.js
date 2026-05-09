@@ -89,6 +89,36 @@ async function ensureInstallEventTracked(){
   }catch{}
 }
 
+// Active-player estimate based on unique player IDs seen in recent analytics events.
+let activePlayersPollTO = null;
+let activePlayersPingTO = null;
+
+async function refreshActivePlayers(){
+  const el = document.getElementById("active-players");
+  if(!el) return;
+  const since = new Date(Date.now()-5*60*1000).toISOString();
+  const rows = await dbSelect("player_events", {
+    select:"player_id",
+    created_at:`gte.${since}`,
+    order:"created_at.desc",
+    limit:"300",
+  });
+
+  const ids = new Set((rows||[]).map(r=>r?.player_id).filter(Boolean));
+  ids.add(getPlayerId());
+  const n = ids.size;
+  el.textContent = `Active now: ${n}`;
+}
+
+function startActivePlayers(){
+  clearInterval(activePlayersPollTO);
+  clearInterval(activePlayersPingTO);
+  void trackEvent("presence_ping");
+  void refreshActivePlayers();
+  activePlayersPollTO = setInterval(()=>{ void refreshActivePlayers(); }, 45000);
+  activePlayersPingTO = setInterval(()=>{ void trackEvent("presence_ping"); }, 120000);
+}
+
 /* ═══════════════════════════════════════════════════
    FLAGS
    List of country flag emojis shown in the flag picker.
@@ -930,5 +960,6 @@ updateMusicBtn();
 setupSmoothUI();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
+startActivePlayers();
 if(getMusicPref()) startMusic();
 
