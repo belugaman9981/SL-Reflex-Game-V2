@@ -145,10 +145,12 @@ function buildFlagPicker() {
   selectedFlag = saved;
   document.getElementById("flag-selected").textContent = saved;
   grid.innerHTML = "";
+  
   FLAGS.forEach(f => {
     const btn = document.createElement("button");
     btn.className = "flag-opt" + (f === saved ? " selected" : "");
     btn.textContent = f;
+    
     btn.addEventListener("click", () => {
       selectedFlag = f;
       document.getElementById("flag-selected").textContent = f;
@@ -156,6 +158,7 @@ function buildFlagPicker() {
       btn.classList.add("selected");
       saveFlag(f); SFX.click();
     });
+    
     grid.appendChild(btn);
   });
 }
