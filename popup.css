@@ -289,6 +289,7 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 .home-ctrl-btn:hover{background:rgba(251,146,60,.18);color:#ffd6b0}
 .home-ctrl-btn.on {background:rgba(249,115,22,.25);border-color:rgba(249,115,22,.5);color:#ffcc99}
 .active-players   {font-size:11px;font-weight:700;letter-spacing:.03em;color:#f7c18f;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.24);border-radius:99px;padding:4px 10px;margin-top:2px;min-height:22px;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease-smooth)}
+.points-balance   {font-size:12px;font-weight:800;letter-spacing:.03em;color:#ffe0bf;background:linear-gradient(180deg,rgba(249,115,22,.26),rgba(234,88,12,.2));border:1px solid rgba(251,146,60,.5);border-radius:99px;padding:5px 12px;min-height:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(251,146,60,.25);transition:all .2s var(--ease-smooth)}
 
 /* ══════════════════════════════════════════════
    ☀️  LIGHT THEME
@@ -303,6 +304,7 @@ body.theme-light .home-ctrl-btn        {color:#9a3412;background:rgba(251,146,60
 body.theme-light .home-ctrl-btn:hover  {background:rgba(251,146,60,.24);color:#c2410c}
 body.theme-light .home-ctrl-btn.on     {background:rgba(249,115,22,.26);border-color:rgba(249,115,22,.58);color:#9a3412}
 body.theme-light .active-players       {color:#9a3412;background:rgba(251,146,60,.14);border-color:rgba(251,146,60,.38)}
+body.theme-light .points-balance       {color:#9a3412;background:linear-gradient(180deg,rgba(251,146,60,.25),rgba(234,88,12,.18));border-color:rgba(234,88,12,.45);box-shadow:0 0 12px rgba(234,88,12,.2)}
 body.theme-light .ach-badge:hover::after{background:#f8fafc;border-color:#e2e8f0;color:#334155}
 body.theme-light .ach-toast            {background:#f8fafc;border-color:#e2e8f0;color:#b45309}
 body.theme-light .instructions         {background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.07)}
@@ -420,6 +422,7 @@ body.theme-neon .home-ctrl-btn         {color:#5b21b6;background:rgba(124,58,237
 body.theme-neon .home-ctrl-btn:hover   {background:rgba(124,58,237,.14);color:#a78bfa}
 body.theme-neon .home-ctrl-btn.on      {background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.5);color:#c084fc}
 body.theme-neon .active-players        {color:#a78bfa;background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.24)}
+body.theme-neon .points-balance        {color:#e9d5ff;background:linear-gradient(180deg,rgba(124,58,237,.24),rgba(91,33,182,.2));border-color:rgba(167,139,250,.5);box-shadow:0 0 14px rgba(167,139,250,.24)}
 body.theme-neon kbd                    {background:#1a0050;border-color:#4c1d95 #4c1d95 #2e1065;color:#c4b5fd}
 body.theme-neon .ach-toast             {background:#0f0030;border-color:#4c1d95;color:#c4b5fd}
 body.theme-neon .ach-badge:hover::after{background:#0f0030;border-color:#4c1d95;color:#e8d5ff}
