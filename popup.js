@@ -89,6 +89,39 @@ async function ensureInstallEventTracked(){
   }catch{}
 }
 
+// Active-player estimate based on unique player IDs seen in recent analytics events.
+let activePlayersPollTO = null;
+let activePlayersPingTO = null;
+
+async function refreshActivePlayers(){
+  const homeEl = document.getElementById("active-players");
+  const lbEl = document.getElementById("active-players-lb");
+  if(!homeEl && !lbEl) return;
+  const since = new Date(Date.now()-5*60*1000).toISOString();
+  const rows = await dbSelect("player_events", {
+    select:"player_id",
+    created_at:`gte.${since}`,
+    order:"created_at.desc",
+    limit:"300",
+  });
+
+  const ids = new Set((rows||[]).map(r=>r?.player_id).filter(Boolean));
+  ids.add(getPlayerId());
+  const n = ids.size;
+  const text = `Active now: ${n}`;
+  if(homeEl) homeEl.textContent = text;
+  if(lbEl) lbEl.textContent = text;
+}
+
+function startActivePlayers(){
+  clearInterval(activePlayersPollTO);
+  clearInterval(activePlayersPingTO);
+  void trackEvent("presence_ping");
+  void refreshActivePlayers();
+  activePlayersPollTO = setInterval(()=>{ void refreshActivePlayers(); }, 45000);
+  activePlayersPingTO = setInterval(()=>{ void trackEvent("presence_ping"); }, 120000);
+}
+
 /* ═══════════════════════════════════════════════════
    FLAGS
    List of country flag emojis shown in the flag picker.
@@ -101,7 +134,7 @@ const FLAGS = [
   "🇳🇱","🇳🇿","🇳🇬","🇳🇴","🇵🇰","🇵🇭","🇵🇱","🇵🇹","🇷🇴","🇷🇺",
   "🇸🇦","🇿🇦","🇸🇪","🇨🇭","🇹🇭","🇹🇷","🇺🇦","🇦🇪","🇬🇧","🇺🇸",
   "🇻🇳","🇦🇷","🇸🇬","🇪🇸","🇸🇰","🇸🇮","🇪🇪","🇱🇻","🇱🇹","🇮🇸",
-];
+]; 
 
 let selectedFlag = "🌍";
 
@@ -112,10 +145,12 @@ function buildFlagPicker() {
   selectedFlag = saved;
   document.getElementById("flag-selected").textContent = saved;
   grid.innerHTML = "";
+  
   FLAGS.forEach(f => {
     const btn = document.createElement("button");
     btn.className = "flag-opt" + (f === saved ? " selected" : "");
     btn.textContent = f;
+    
     btn.addEventListener("click", () => {
       selectedFlag = f;
       document.getElementById("flag-selected").textContent = f;
@@ -123,6 +158,7 @@ function buildFlagPicker() {
       btn.classList.add("selected");
       saveFlag(f); SFX.click();
     });
+    
     grid.appendChild(btn);
   });
 }
@@ -133,6 +169,7 @@ function buildFlagPicker() {
    showScreen() hides all others and triggers an enter animation on the active one.
 ═══════════════════════════════════════════════════ */
 // All possible screen IDs — must match the id="screen-*" elements in HTML.
+
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
@@ -142,9 +179,11 @@ const SCREEN_IDS = [
 function showScreen(name) {
   SCREEN_IDS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
+    
     if (el) {
       const active = s === name;
       el.classList.toggle("hidden", !active);
+      
       if (active) {
         // Force reflow so the CSS animation re-triggers even if screen was recently shown.
         el.classList.remove("screen-enter");
@@ -158,6 +197,24 @@ function showScreen(name) {
 // Adds a small "pop" animation to every button tap and tracks the cursor position
 // as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
+  let glowFrame= null;
+  let targetMx = 50;
+  let targetMy = 30;
+  let currentMx= 50;
+  let currentMy= 30;
+
+  const tickGlow=()=>{
+    currentMx += (targetMx-currentMx)*0.14;
+    currentMy += (targetMy-currentMy)*0.14;
+    document.body.style.setProperty("--mx",`${currentMx.toFixed(1)}%`);
+    document.body.style.setProperty("--my",`${currentMy.toFixed(1)}%`);
+    if(Math.abs(targetMx-currentMx)>0.05 || Math.abs(targetMy-currentMy)>0.05){
+      glowFrame=requestAnimationFrame(tickGlow);
+    } else {
+      glowFrame=null;
+    }
+  };
+
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
     if(!btn)return;
@@ -168,10 +225,15 @@ function setupSmoothUI(){
 
   document.addEventListener("pointermove",e=>{
     const r=document.body.getBoundingClientRect();
-    const mx=((e.clientX-r.left)/Math.max(1,r.width))*100;
-    const my=((e.clientY-r.top)/Math.max(1,r.height))*100;
-    document.body.style.setProperty("--mx",`${mx.toFixed(1)}%`);
-    document.body.style.setProperty("--my",`${my.toFixed(1)}%`);
+    targetMx=((e.clientX-r.left)/Math.max(1,r.width))*100;
+    targetMy=((e.clientY-r.top)/Math.max(1,r.height))*100;
+    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
+  });
+
+  document.addEventListener("pointerleave",()=>{
+    targetMx=50;
+    targetMy=30;
+    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
   });
 }
 
@@ -245,6 +307,24 @@ function getSavedName(){try{return localStorage.getItem("sl_name")||"";}catch{re
 function saveName(n)   {try{localStorage.setItem("sl_name",n);}catch{}}
 function getSavedFlag(){try{return localStorage.getItem("sl_flag")||"🌍";}catch{return "🌍";}}
 function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
+function getPoints()   {try{return parseInt(localStorage.getItem("sl_points")||"0");}catch{return 0;}}
+function savePoints(p) {try{localStorage.setItem("sl_points",String(Math.max(0,Math.floor(p))));}catch{}}
+
+function renderPoints(){
+  const el=document.getElementById("points-balance");
+  if(!el)return;
+  el.textContent=`Points: ${getPoints().toLocaleString()}`;
+}
+
+function addPoints(amount,source){
+  const pts=Math.max(0,Math.floor(amount||0));
+  if(!pts)return getPoints();
+  const next=getPoints()+pts;
+  savePoints(next);
+  renderPoints();
+  void trackEvent("points_earned",source||null,{points:pts,total:next});
+  return next;
+}
 
 /* ═══════════════════════════════════════════════════
    STATS
@@ -333,7 +413,7 @@ document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRE
 document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
-function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();showScreen("home");}
+function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();showScreen("home");}
 renderDeck();renderAchBar();
 
 /* ═══════════════════════════════════════════════════
@@ -551,6 +631,8 @@ function slEnd(reason){
   slAlive=false;stopSLTimer();stopIdle();clearTimeout(slGhostTO);
   clearTimeout(slNextTO);
   slEndScore=slScore;slEndLevel=slLevel;
+  const slPoints=Math.max(6,Math.floor(slScore*1.15)+slLevel*3);
+  addPoints(slPoints,"sl");
   const isNewBest=slScore>getHS();saveHS(slScore);
   updateSLStats(slScore,slLevel,slMaxCombo);
   if(slGhost&&slScore>=30)unlockAch("ghost_beast");
@@ -558,7 +640,7 @@ function slEnd(reason){
   openNameEntry(
     reason==="time"?"Time's Up!":"Game Over",
     reason==="time"?"time":"lose",
-    `Score: <span>${slScore}</span> · Level <span>${slLevel}</span>`,
+    `Score: <span>${slScore}</span> · Level <span>${slLevel}</span> · +<span>${slPoints}</span> pts`,
     isNewBest,
     async(name,flag)=>{
       if(name){
@@ -622,6 +704,7 @@ function rtShowResults(times){const valid=times.filter(t=>typeof t==="number"),m
 const earlyCount=times.filter(t=>t==="early"||t==="fake").length;
 if(earlyCount===0&&avg!=null)unlockAch("sharpshooter");
 if(avg!=null&&avg<200)unlockAch("speed_demon");
+if(avg!=null){const rtPoints=Math.max(6,26+Math.round((420-avg)/10)-earlyCount*4);addPoints(rtPoints,"rt");}
 if(avg!=null){const bestMs=valid.length?Math.min(...valid):null;updateRTStats(avg,bestMs);}
 const medalWrap=document.getElementById("rt-medal-wrap");
 if(medalWrap){const m=rtGetMedal(avg);if(m){medalWrap.innerHTML=`<div class="rt-medal">${m.icon}</div><div class="rt-medal-label" style="color:${m.color}">${m.label} \u2014 ${m.desc}</div>`;}else{medalWrap.innerHTML="";}}
@@ -690,6 +773,12 @@ function sdkCheckWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c
 
 function sdkWin(){
   sdkStopTimer();SFX.sdkWin();
+  const diffBonus=sdkDifficulty==="Hard"?18:sdkDifficulty==="Medium"?10:6;
+  const mistakePenalty=sdkMistakes*4;
+  const speedBonus=Math.max(0,Math.round((420-Math.min(sdkSecs,420))/20));
+  const dailyBonus=sdkIsDaily?8:0;
+  const sdkPoints=Math.max(8,20+diffBonus+speedBonus+dailyBonus-mistakePenalty);
+  addPoints(sdkPoints,sdkIsDaily?"sudoku_daily":"sudoku");
   if(sdkMistakes===0)unlockAch("flawless");
   if(sdkDifficulty==="Hard"&&sdkHintsUsed===0&&sdkMistakes===0)unlockAch("hint_free");
   updateSDKStats(sdkSecs,sdkMistakes);
@@ -905,7 +994,9 @@ document.getElementById("btn-music").addEventListener("click", () => { toggleMus
 applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
+renderPoints();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
+startActivePlayers();
 if(getMusicPref()) startMusic();
 
