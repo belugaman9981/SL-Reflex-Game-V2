@@ -158,6 +158,24 @@ function showScreen(name) {
 // Adds a small "pop" animation to every button tap and tracks the cursor position
 // as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
+  let glowFrame=null;
+  let targetMx=50;
+  let targetMy=30;
+  let currentMx=50;
+  let currentMy=30;
+
+  const tickGlow=()=>{
+    currentMx += (targetMx-currentMx)*0.14;
+    currentMy += (targetMy-currentMy)*0.14;
+    document.body.style.setProperty("--mx",`${currentMx.toFixed(1)}%`);
+    document.body.style.setProperty("--my",`${currentMy.toFixed(1)}%`);
+    if(Math.abs(targetMx-currentMx)>0.05 || Math.abs(targetMy-currentMy)>0.05){
+      glowFrame=requestAnimationFrame(tickGlow);
+    } else {
+      glowFrame=null;
+    }
+  };
+
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
     if(!btn)return;
@@ -168,10 +186,15 @@ function setupSmoothUI(){
 
   document.addEventListener("pointermove",e=>{
     const r=document.body.getBoundingClientRect();
-    const mx=((e.clientX-r.left)/Math.max(1,r.width))*100;
-    const my=((e.clientY-r.top)/Math.max(1,r.height))*100;
-    document.body.style.setProperty("--mx",`${mx.toFixed(1)}%`);
-    document.body.style.setProperty("--my",`${my.toFixed(1)}%`);
+    targetMx=((e.clientX-r.left)/Math.max(1,r.width))*100;
+    targetMy=((e.clientY-r.top)/Math.max(1,r.height))*100;
+    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
+  });
+
+  document.addEventListener("pointerleave",()=>{
+    targetMx=50;
+    targetMy=30;
+    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
   });
 }
 
