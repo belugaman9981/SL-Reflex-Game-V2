@@ -169,6 +169,7 @@ function buildFlagPicker() {
    showScreen() hides all others and triggers an enter animation on the active one.
 ═══════════════════════════════════════════════════ */
 // All possible screen IDs — must match the id="screen-*" elements in HTML.
+
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
