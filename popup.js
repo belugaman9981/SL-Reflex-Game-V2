@@ -198,8 +198,8 @@ function showScreen(name) {
 // as CSS variables (--mx, --my) used by the background radial glow effect.
 function setupSmoothUI(){
   let glowFrame= null;
-  let targetMx=  50;
-  let targetMy=  30;
+  let targetMx = 50;
+  let targetMy = 30;
   let currentMx= 50;
   let currentMy= 30;
 
