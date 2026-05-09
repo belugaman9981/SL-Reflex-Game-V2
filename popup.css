@@ -120,6 +120,7 @@ kbd                 {display: inline-block; padding: 2px 7px; background: #1e293
 #screen-leaderboard{justify-content: flex-start; padding-top: 4px; gap: 7px}
 .lb-header         {display: flex; justify-content: space-between; align-items: center; width: 100%}
 .lb-title          {font-size: 17px; font-weight: 800; background: linear-gradient(135deg,#fdba74,#f97316); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent}
+.lb-active-players {font-size:10px; padding:3px 8px; min-height:20px; margin-left:auto; margin-right:8px; white-space:nowrap}
 
 .lb-game-tabs                          {display: flex; gap: 5px; width: 100%}
 .lb-game-tab                           {flex: 1; padding: 7px 4px; font-family: inherit; font-size: 12px; font-weight: 700; color: #64748b; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 9px; cursor: pointer; transition: all .2s var(--ease-smooth)}

@@ -94,8 +94,9 @@ let activePlayersPollTO = null;
 let activePlayersPingTO = null;
 
 async function refreshActivePlayers(){
-  const el = document.getElementById("active-players");
-  if(!el) return;
+  const homeEl = document.getElementById("active-players");
+  const lbEl = document.getElementById("active-players-lb");
+  if(!homeEl && !lbEl) return;
   const since = new Date(Date.now()-5*60*1000).toISOString();
   const rows = await dbSelect("player_events", {
     select:"player_id",
@@ -107,7 +108,9 @@ async function refreshActivePlayers(){
   const ids = new Set((rows||[]).map(r=>r?.player_id).filter(Boolean));
   ids.add(getPlayerId());
   const n = ids.size;
-  el.textContent = `Active now: ${n}`;
+  const text = `Active now: ${n}`;
+  if(homeEl) homeEl.textContent = text;
+  if(lbEl) lbEl.textContent = text;
 }
 
 function startActivePlayers(){
