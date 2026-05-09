@@ -179,9 +179,11 @@ const SCREEN_IDS = [
 function showScreen(name) {
   SCREEN_IDS.forEach(s => {
     const el = document.getElementById(`screen-${s}`);
+    
     if (el) {
       const active = s === name;
       el.classList.toggle("hidden", !active);
+      
       if (active) {
         // Force reflow so the CSS animation re-triggers even if screen was recently shown.
         el.classList.remove("screen-enter");
