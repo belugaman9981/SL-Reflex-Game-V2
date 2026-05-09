@@ -301,6 +301,24 @@ function getSavedName(){try{return localStorage.getItem("sl_name")||"";}catch{re
 function saveName(n)   {try{localStorage.setItem("sl_name",n);}catch{}}
 function getSavedFlag(){try{return localStorage.getItem("sl_flag")||"🌍";}catch{return "🌍";}}
 function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
+function getPoints()   {try{return parseInt(localStorage.getItem("sl_points")||"0");}catch{return 0;}}
+function savePoints(p) {try{localStorage.setItem("sl_points",String(Math.max(0,Math.floor(p))));}catch{}}
+
+function renderPoints(){
+  const el=document.getElementById("points-balance");
+  if(!el)return;
+  el.textContent=`Points: ${getPoints().toLocaleString()}`;
+}
+
+function addPoints(amount,source){
+  const pts=Math.max(0,Math.floor(amount||0));
+  if(!pts)return getPoints();
+  const next=getPoints()+pts;
+  savePoints(next);
+  renderPoints();
+  void trackEvent("points_earned",source||null,{points:pts,total:next});
+  return next;
+}
 
 /* ═══════════════════════════════════════════════════
    STATS
@@ -389,7 +407,7 @@ document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRE
 document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
-function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();showScreen("home");}
+function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();showScreen("home");}
 renderDeck();renderAchBar();
 
 /* ═══════════════════════════════════════════════════
@@ -607,6 +625,8 @@ function slEnd(reason){
   slAlive=false;stopSLTimer();stopIdle();clearTimeout(slGhostTO);
   clearTimeout(slNextTO);
   slEndScore=slScore;slEndLevel=slLevel;
+  const slPoints=Math.max(6,Math.floor(slScore*1.15)+slLevel*3);
+  addPoints(slPoints,"sl");
   const isNewBest=slScore>getHS();saveHS(slScore);
   updateSLStats(slScore,slLevel,slMaxCombo);
   if(slGhost&&slScore>=30)unlockAch("ghost_beast");
@@ -614,7 +634,7 @@ function slEnd(reason){
   openNameEntry(
     reason==="time"?"Time's Up!":"Game Over",
     reason==="time"?"time":"lose",
-    `Score: <span>${slScore}</span> · Level <span>${slLevel}</span>`,
+    `Score: <span>${slScore}</span> · Level <span>${slLevel}</span> · +<span>${slPoints}</span> pts`,
     isNewBest,
     async(name,flag)=>{
       if(name){
@@ -678,6 +698,7 @@ function rtShowResults(times){const valid=times.filter(t=>typeof t==="number"),m
 const earlyCount=times.filter(t=>t==="early"||t==="fake").length;
 if(earlyCount===0&&avg!=null)unlockAch("sharpshooter");
 if(avg!=null&&avg<200)unlockAch("speed_demon");
+if(avg!=null){const rtPoints=Math.max(6,26+Math.round((420-avg)/10)-earlyCount*4);addPoints(rtPoints,"rt");}
 if(avg!=null){const bestMs=valid.length?Math.min(...valid):null;updateRTStats(avg,bestMs);}
 const medalWrap=document.getElementById("rt-medal-wrap");
 if(medalWrap){const m=rtGetMedal(avg);if(m){medalWrap.innerHTML=`<div class="rt-medal">${m.icon}</div><div class="rt-medal-label" style="color:${m.color}">${m.label} \u2014 ${m.desc}</div>`;}else{medalWrap.innerHTML="";}}
@@ -746,6 +767,12 @@ function sdkCheckWin(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c
 
 function sdkWin(){
   sdkStopTimer();SFX.sdkWin();
+  const diffBonus=sdkDifficulty==="Hard"?18:sdkDifficulty==="Medium"?10:6;
+  const mistakePenalty=sdkMistakes*4;
+  const speedBonus=Math.max(0,Math.round((420-Math.min(sdkSecs,420))/20));
+  const dailyBonus=sdkIsDaily?8:0;
+  const sdkPoints=Math.max(8,20+diffBonus+speedBonus+dailyBonus-mistakePenalty);
+  addPoints(sdkPoints,sdkIsDaily?"sudoku_daily":"sudoku");
   if(sdkMistakes===0)unlockAch("flawless");
   if(sdkDifficulty==="Hard"&&sdkHintsUsed===0&&sdkMistakes===0)unlockAch("hint_free");
   updateSDKStats(sdkSecs,sdkMistakes);
@@ -961,6 +988,7 @@ document.getElementById("btn-music").addEventListener("click", () => { toggleMus
 applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
+renderPoints();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
 startActivePlayers();
