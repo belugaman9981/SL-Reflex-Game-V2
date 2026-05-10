@@ -285,7 +285,7 @@ const SHOP_ITEMS=[
 ];
 
 function getShopState(){
-  try{
+  try{ 
     const raw=JSON.parse(localStorage.getItem("sl_shop")||"{}");
     return {
       tokens:{
