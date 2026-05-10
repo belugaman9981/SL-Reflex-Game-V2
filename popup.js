@@ -194,46 +194,14 @@ function showScreen(name) {
   });
 }
 
-// Adds a small "pop" animation to every button tap and tracks the cursor position
-// as CSS variables (--mx, --my) used by the background radial glow effect.
+// Adds a small "pop" animation to every button tap.
 function setupSmoothUI(){
-  let glowFrame= null;
-  let targetMx = 50;
-  let targetMy = 30;
-  let currentMx= 50;
-  let currentMy= 30;
-
-  const tickGlow=()=>{
-    currentMx += (targetMx-currentMx)*0.14;
-    currentMy += (targetMy-currentMy)*0.14;
-    document.body.style.setProperty("--mx",`${currentMx.toFixed(1)}%`);
-    document.body.style.setProperty("--my",`${currentMy.toFixed(1)}%`);
-    if(Math.abs(targetMx-currentMx)>0.05 || Math.abs(targetMy-currentMy)>0.05){
-      glowFrame=requestAnimationFrame(tickGlow);
-    } else {
-      glowFrame=null;
-    }
-  };
-
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
     if(!btn)return;
     btn.classList.remove("pop-tap");
     void btn.offsetWidth;
     btn.classList.add("pop-tap");
-  });
-
-  document.addEventListener("pointermove",e=>{
-    const r=document.body.getBoundingClientRect();
-    targetMx=((e.clientX-r.left)/Math.max(1,r.width))*100;
-    targetMy=((e.clientY-r.top)/Math.max(1,r.height))*100;
-    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
-  });
-
-  document.addEventListener("pointerleave",()=>{
-    targetMx=50;
-    targetMy=30;
-    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
   });
 }
 
@@ -365,12 +333,12 @@ function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOS
 ═══════════════════════════════════════════════════ */
 // Each entry describes one game mode shown on the swipe deck cards.
 const MODES=[
-  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
-  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
-  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", glow:"rgba(251,191,36,.3)",  accent:"#fbbf24"},
-  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", glow:"rgba(168,139,250,.3)", accent:"#a78bfa"},
-  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", glow:"rgba(20,184,166,.3)",  accent:"#2dd4bf"},
-  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", glow:"rgba(139,92,246,.3)",  accent:"#a78bfa"},
+  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", accent:"#60a5fa"},
+  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", accent:"#4ade80"},
+  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", accent:"#fbbf24"},
+  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", accent:"#a78bfa"},
+  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", accent:"#2dd4bf"},
+  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", accent:"#a78bfa"},
 ];
 
 let      deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
@@ -385,7 +353,7 @@ function renderCard(el,m){
   el.innerHTML="";
   if(el===topCard){const sp=document.createElement("div");sp.className="stamp stamp-play";sp.id="stamp-play";sp.textContent="PLAY";el.appendChild(sp);const ss=document.createElement("div");ss.className="stamp stamp-skip";ss.id="stamp-skip";ss.textContent="SKIP";el.appendChild(ss);}
   el.style.background=isLightTheme()?(m.bgLight||m.bg):m.bg;
-  el.style.boxShadow=isLightTheme()?`inset 0 0 0 2px rgba(255,255,255,.4),0 18px 44px ${m.glow},0 10px 24px rgba(15,23,42,.16)`:`inset 0 0 0 2px rgba(255,255,255,.08),0 20px 52px ${m.glow},0 8px 20px rgba(0,0,0,.5)`;
+  el.style.boxShadow=isLightTheme()?"inset 0 0 0 2px rgba(255,255,255,.4),0 10px 24px rgba(15,23,42,.16)":"inset 0 0 0 2px rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.5)";
   const f=document.createDocumentFragment();
   ["card-emoji","card-name","card-desc"].forEach((cls,i)=>{const d=document.createElement("div");d.className=cls;d.textContent=[m.emoji,m.name,m.desc][i];f.appendChild(d);});
   const tags=document.createElement("div");tags.className="card-tags";
@@ -848,20 +816,24 @@ document.addEventListener("keydown",e=>{
 });
 
 /* ═══════════════════════════════════════════════════
-   THEMES  (dark → light → neon)
+   THEMES  (dark ↔ light)
    Cycling applies a CSS class to <body>; CSS rules in popup.css handle the rest.
    The deck is re-rendered because card colours depend on the active theme.
 ═══════════════════════════════════════════════════ */
-const THEMES       = ["dark","light","neon"];
-const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light", neon:"⚡ Neon"};
+const THEMES       = ["dark","light"];
+const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light"};
 
-function getTheme()    {try{return localStorage.getItem("theme")||"dark";}catch{return "dark";}}
+function getTheme()    {
+  try{
+    const t=localStorage.getItem("theme")||"dark";
+    return THEMES.includes(t)?t:"dark";
+  }catch{return "dark";}
+}
 function saveTheme(t)  {try{localStorage.setItem("theme",t);}catch{}}
 
 function applyTheme(t) {
-  document.body.classList.remove("theme-light","theme-neon");
+  document.body.classList.remove("theme-light");
   if(t==="light") document.body.classList.add("theme-light");
-  if(t==="neon")  document.body.classList.add("theme-neon");
   renderDeck();
   const b=document.getElementById("btn-theme");
   if(b) b.textContent = THEME_LABELS[t]||"🌙 Dark";
