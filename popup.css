@@ -292,7 +292,7 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 .points-balance   {font-size:12px;font-weight:800;letter-spacing:.03em;color:#ffe0bf;background:linear-gradient(180deg,rgba(249,115,22,.26),rgba(234,88,12,.2));border:1px solid rgba(251,146,60,.5);border-radius:99px;padding:5px 12px;min-height:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(251,146,60,.25);transition:all .2s var(--ease-smooth)}
 
 /* ── DARK MODE (NO GLOW) ───────────────────── */
-body:not(.theme-light)                      {background:linear-gradient(145deg,#101112,#1a1c1f); border-color:rgba(255,255,255,.12); box-shadow:none}
+body:not(.theme-light)                      {background:linear-gradient(145deg,#141210,#1e1b18); border-color:rgba(255,240,220,.12); box-shadow:none}
 body:not(.theme-light) .timer-bar            {box-shadow:none}
 body:not(.theme-light) .swipe-card           {box-shadow:0 8px 28px rgba(0,0,0,.42); border-color:rgba(255,255,255,.12)}
 body:not(.theme-light) .card-emoji           {filter:none}
