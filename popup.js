@@ -205,7 +205,6 @@ function setupSmoothUI(){
   });
 }
 
-
 /* ═══════════════════════════════════════════════════
    AUDIO
    All sounds are synthesized on-the-fly using the Web Audio API — no audio files needed.
