@@ -30,6 +30,7 @@
     <div class="home-controls">
       <button class="home-ctrl-btn" id="btn-theme">🌙 Dark</button>
       <button class="home-ctrl-btn" id="btn-music">🎵 Music OFF</button>
+      <button class="home-ctrl-btn" id="btn-shop">🛒 Shop</button>
     </div>
     <p class="active-players" id="active-players">Active now: --</p>
     <p class="points-balance" id="points-balance">Points: 0</p>
@@ -238,6 +239,17 @@
     <p style="color:#64748b;font-size:14px">3 strikes and you're out</p>
     <button class="btn-restart" id="btn-sdk-retry">Try Again</button>
     <button class="btn-ghost-btn" id="btn-sdk-end-home">← Menu</button>
+  </div>
+
+  <!-- ░░ STATS ░░ -->
+  <div id="screen-shop" class="screen hidden">
+    <div class="lb-header">
+      <h2 class="lb-title">🛒 Shop</h2>
+      <button class="btn-ghost-btn small" id="btn-shop-close">✕</button>
+    </div>
+    <p class="rt-sub">Spend points on power-ups and upgrades</p>
+    <div class="shop-list" id="shop-list"></div>
+    <button class="btn-ghost-btn" id="btn-shop-home">← Menu</button>
   </div>
 
   <!-- ░░ STATS ░░ -->

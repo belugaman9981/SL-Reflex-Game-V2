@@ -291,7 +291,22 @@ body.notes-mode .sdk-num:not(.dim)                            {border-color: rgb
 .active-players   {font-size:11px;font-weight:700;letter-spacing:.03em;color:#f7c18f;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.24);border-radius:99px;padding:4px 10px;margin-top:2px;min-height:22px;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease-smooth)}
 .points-balance   {font-size:12px;font-weight:800;letter-spacing:.03em;color:#ffe0bf;background:linear-gradient(180deg,rgba(249,115,22,.26),rgba(234,88,12,.2));border:1px solid rgba(251,146,60,.5);border-radius:99px;padding:5px 12px;min-height:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(251,146,60,.25);transition:all .2s var(--ease-smooth);position:relative;overflow:visible}
 .points-pop       {position:absolute;left:50%;top:-8px;transform:translate(-50%,0);font-size:11px;font-weight:800;color:#fde68a;opacity:0;pointer-events:none;animation:pointsPop .9s var(--ease-soft) forwards;text-shadow:none;white-space:nowrap}
+.points-pop.spend {color:#fca5a5}
 @keyframes pointsPop{0%{opacity:0;transform:translate(-50%,4px) scale(.96)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px) scale(1)}}
+
+/* ── SHOP ───────────────────────────────────── */
+#screen-shop {justify-content:flex-start;padding-top:4px;gap:7px;overflow-y:auto}
+.shop-list   {display:flex;flex-direction:column;gap:7px;width:100%;max-height:470px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#334155 transparent}
+.shop-list::-webkit-scrollbar      {width:4px}
+.shop-list::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+.shop-item   {display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.shop-main   {display:flex;flex-direction:column;gap:2px;min-width:0}
+.shop-name   {font-size:12px;font-weight:800;color:#e2e8f0}
+.shop-desc   {font-size:10px;color:#94a3b8;line-height:1.35}
+.shop-meta   {font-size:10px;color:#fbbf24;font-weight:700}
+.shop-buy    {padding:6px 10px;border-radius:8px;border:1px solid rgba(251,146,60,.35);background:rgba(251,146,60,.12);color:#fdba74;font-size:11px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap}
+.shop-buy:hover{background:rgba(251,146,60,.2)}
+.shop-buy:disabled{opacity:.45;cursor:not-allowed}
 
 /* ── DARK MODE (NO GLOW) ───────────────────── */
 body:not(.theme-light)                      {background:linear-gradient(145deg,#141210,#1e1b18); border-color:rgba(255,240,220,.12); box-shadow:none}

@@ -173,7 +173,7 @@ function buildFlagPicker() {
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
-  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats"
+  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats","shop"
 ];
 
 function showScreen(name) {
@@ -278,6 +278,45 @@ function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
 function getPoints()   {try{return parseInt(localStorage.getItem("sl_points")||"0");}catch{return 0;}}
 function savePoints(p) {try{localStorage.setItem("sl_points",String(Math.max(0,Math.floor(p))));}catch{}}
 
+const SHOP_ITEMS=[
+  {id:"shield_token",name:"🛡️ Shield Token",desc:"Auto-use in SL: start your next run with a shield",cost:70,type:"token"},
+  {id:"hint_token",name:"💡 Hint Token",desc:"Adds +1 extra Sudoku hint when your base hints run out",cost:45,type:"token"},
+  {id:"point_boost",name:"💰 Point Boost",desc:"Permanent +15% points from every game",cost:260,type:"upgrade"},
+];
+
+function getShopState(){
+  try{
+    const raw=JSON.parse(localStorage.getItem("sl_shop")||"{}");
+    return {
+      tokens:{
+        shield_token:Math.max(0,Math.floor(raw?.tokens?.shield_token||0)),
+        hint_token:Math.max(0,Math.floor(raw?.tokens?.hint_token||0)),
+      },
+      upgrades:{
+        point_boost:!!raw?.upgrades?.point_boost,
+      }
+    };
+  }catch{
+    return {tokens:{shield_token:0,hint_token:0},upgrades:{point_boost:false}};
+  }
+}
+function saveShopState(s){try{localStorage.setItem("sl_shop",JSON.stringify(s));}catch{}}
+function getShopQty(id){return getShopState().tokens[id]||0;}
+function hasShopUpgrade(id){return !!getShopState().upgrades[id];}
+function addShopQty(id,amount){
+  const s=getShopState();
+  s.tokens[id]=Math.max(0,(s.tokens[id]||0)+Math.floor(amount||0));
+  saveShopState(s);
+}
+function useShopQty(id,amount=1){
+  const s=getShopState();
+  const need=Math.max(1,Math.floor(amount));
+  if((s.tokens[id]||0)<need)return false;
+  s.tokens[id]-=need;
+  saveShopState(s);
+  return true;
+}
+
 function renderPoints(){
   const el=document.getElementById("points-balance");
   if(!el)return;
@@ -289,20 +328,73 @@ function showPointsPop(pts){
   if(!el||!pts)return;
   const pop=document.createElement("span");
   pop.className="points-pop";
-  pop.textContent=`+${pts} pts`;
+  if(pts<0)pop.classList.add("spend");
+  pop.textContent=`${pts>0?"+":""}${pts} pts`;
   el.appendChild(pop);
   setTimeout(()=>pop.remove(),950);
 }
 
 function addPoints(amount,source){
-  const pts=Math.max(0,Math.floor(amount||0));
-  if(!pts)return getPoints();
+  const basePts=Math.max(0,Math.floor(amount||0));
+  if(!basePts)return getPoints();
+  const pts=hasShopUpgrade("point_boost")?Math.max(1,Math.floor(basePts*1.15)):basePts;
   const next=getPoints()+pts;
   savePoints(next);
   renderPoints();
   showPointsPop(pts);
   void trackEvent("points_earned",source||null,{points:pts,total:next});
   return next;
+}
+
+function spendPoints(amount,source){
+  const cost=Math.max(0,Math.floor(amount||0));
+  if(!cost)return getPoints();
+  const cur=getPoints();
+  if(cur<cost)return null;
+  const next=cur-cost;
+  savePoints(next);
+  renderPoints();
+  showPointsPop(-cost);
+  void trackEvent("points_spent",source||null,{points:cost,total:next});
+  return next;
+}
+
+function buyShopItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item)return;
+  if(item.type==="upgrade"&&hasShopUpgrade(id)){renderShop();return;}
+  if(spendPoints(item.cost,`shop_${id}`)===null){
+    alert("Not enough points yet!");
+    return;
+  }
+  const s=getShopState();
+  if(item.type==="upgrade")s.upgrades[id]=true;
+  else s.tokens[id]=(s.tokens[id]||0)+1;
+  saveShopState(s);
+  void trackEvent("shop_purchase",id,{cost:item.cost});
+  renderShop();
+}
+
+function renderShop(){
+  const list=document.getElementById("shop-list");
+  if(!list)return;
+  const pts=getPoints();
+  const s=getShopState();
+  list.innerHTML="";
+  SHOP_ITEMS.forEach(item=>{
+    const owned=item.type==="upgrade"?(s.upgrades[item.id]?"Owned":"Not owned"):`Owned: ${s.tokens[item.id]||0}`;
+    const disabled=(item.type==="upgrade"&&s.upgrades[item.id])||pts<item.cost;
+    const row=document.createElement("div");
+    row.className="shop-item";
+    row.innerHTML=`<div class="shop-main"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc}</div><div class="shop-meta">${owned} · ${item.cost} pts</div></div>`;
+    const btn=document.createElement("button");
+    btn.className="shop-buy";
+    btn.textContent=item.type==="upgrade"&&s.upgrades[item.id]?"Owned":"Buy";
+    btn.disabled=disabled;
+    btn.addEventListener("click",()=>buyShopItem(item.id));
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
 }
 
 /* ═══════════════════════════════════════════════════
@@ -392,8 +484,12 @@ document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRE
 document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
-function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();showScreen("home");}
+function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();renderShop();showScreen("home");}
 renderDeck();renderAchBar();
+
+document.getElementById("btn-shop")     .addEventListener("click",()=>{renderShop();showScreen("shop");SFX.click();});
+document.getElementById("btn-shop-close").addEventListener("click",goHome);
+document.getElementById("btn-shop-home") .addEventListener("click",goHome);
 
 /* ═══════════════════════════════════════════════════
    GENERIC NAME+FLAG SUBMIT FLOW
@@ -567,7 +663,7 @@ function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.clas
 // Updates the combo badge; shows the shield icon (🛡️) when the combo shield is active.
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
-function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();scheduleSLNext(600);}
+function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;if(useShopQty("shield_token",1)){slShield=true;}clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";updateCombo();startSLTimer();scheduleSLNext(600);}
 function updateLivesHud(){const el=document.getElementById("lives-hud");if(!el)return;el.textContent="❤️".repeat(Math.max(0,slLivesCount))+"💔".repeat(Math.max(0,3-slLivesCount));}
 
 document.addEventListener("keydown",e=>{
@@ -794,8 +890,33 @@ function sdkUpdateNumpad(){const cnt=Array(10).fill(0);for(let r=0;r<9;r++)for(l
    HINT SYSTEM
 ═══════════════════════════════════════════════════ */
 // Fills in a random empty cell with the correct answer — uses up one of 3 hints.
-function sdkUseHint(){if(3-sdkHintsUsed<=0)return;const empties=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});if(!empties.length)return;const {r,c}=empties[Math.floor(Math.random()*empties.length)];sdkPlayer[r][c]=sdkBoard[r][c];sdkNotesCells[r][c].clear();sdkClearPeerNotes(r,c,sdkBoard[r][c]);sdkRefreshCell(r,c);sdkApplyConflicts();sdkHighlight(r,c);sdkUpdateNumpad();sdkHintsUsed++;updateHintBtn();SFX.correct();if(sdkCheckWin())sdkWin();}
-function updateHintBtn(){const btn=document.getElementById("btn-sdk-hint");if(!btn)return;const left=3-sdkHintsUsed;btn.querySelector("span").textContent=`Hint (${left})`;btn.disabled=left<=0;btn.style.opacity=left<=0?"0.4":"1";}
+function sdkUseHint(){
+  const baseLeft=Math.max(0,3-sdkHintsUsed);
+  if(baseLeft<=0&&!useShopQty("hint_token",1)){updateHintBtn();return;}
+  const empties=[];
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});
+  if(!empties.length){updateHintBtn();return;}
+  const {r,c}=empties[Math.floor(Math.random()*empties.length)];
+  sdkPlayer[r][c]=sdkBoard[r][c];
+  sdkNotesCells[r][c].clear();
+  sdkClearPeerNotes(r,c,sdkBoard[r][c]);
+  sdkRefreshCell(r,c);
+  sdkApplyConflicts();
+  sdkHighlight(r,c);
+  sdkUpdateNumpad();
+  if(baseLeft>0)sdkHintsUsed++;
+  updateHintBtn();
+  SFX.correct();
+  if(sdkCheckWin())sdkWin();
+}
+function updateHintBtn(){
+  const btn=document.getElementById("btn-sdk-hint");
+  if(!btn)return;
+  const left=Math.max(0,3-sdkHintsUsed)+getShopQty("hint_token");
+  btn.querySelector("span").textContent=`Hint (${left})`;
+  btn.disabled=left<=0;
+  btn.style.opacity=left<=0?"0.4":"1";
+}
 
 /* ═══════════════════════════════════════════════════
    RT MEDAL
@@ -978,6 +1099,7 @@ applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
 renderPoints();
+renderShop();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
 startActivePlayers();
