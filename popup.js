@@ -284,12 +284,23 @@ function renderPoints(){
   el.textContent=`Points: ${getPoints().toLocaleString()}`;
 }
 
+function showPointsPop(pts){
+  const el=document.getElementById("points-balance");
+  if(!el||!pts)return;
+  const pop=document.createElement("span");
+  pop.className="points-pop";
+  pop.textContent=`+${pts} pts`;
+  el.appendChild(pop);
+  setTimeout(()=>pop.remove(),950);
+}
+
 function addPoints(amount,source){
   const pts=Math.max(0,Math.floor(amount||0));
   if(!pts)return getPoints();
   const next=getPoints()+pts;
   savePoints(next);
   renderPoints();
+  showPointsPop(pts);
   void trackEvent("points_earned",source||null,{points:pts,total:next});
   return next;
 }
