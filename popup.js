@@ -173,7 +173,7 @@ function buildFlagPicker() {
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
-  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats"
+  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats","shop"
 ];
 
 function showScreen(name) {
@@ -194,46 +194,14 @@ function showScreen(name) {
   });
 }
 
-// Adds a small "pop" animation to every button tap and tracks the cursor position
-// as CSS variables (--mx, --my) used by the background radial glow effect.
+// Adds a small "pop" animation to every button tap.
 function setupSmoothUI(){
-  let glowFrame= null;
-  let targetMx = 50;
-  let targetMy = 30;
-  let currentMx= 50;
-  let currentMy= 30;
-
-  const tickGlow=()=>{
-    currentMx += (targetMx-currentMx)*0.14;
-    currentMy += (targetMy-currentMy)*0.14;
-    document.body.style.setProperty("--mx",`${currentMx.toFixed(1)}%`);
-    document.body.style.setProperty("--my",`${currentMy.toFixed(1)}%`);
-    if(Math.abs(targetMx-currentMx)>0.05 || Math.abs(targetMy-currentMy)>0.05){
-      glowFrame=requestAnimationFrame(tickGlow);
-    } else {
-      glowFrame=null;
-    }
-  };
-
   document.addEventListener("pointerdown",e=>{
     const btn=e.target.closest("button");
     if(!btn)return;
     btn.classList.remove("pop-tap");
     void btn.offsetWidth;
     btn.classList.add("pop-tap");
-  });
-
-  document.addEventListener("pointermove",e=>{
-    const r=document.body.getBoundingClientRect();
-    targetMx=((e.clientX-r.left)/Math.max(1,r.width))*100;
-    targetMy=((e.clientY-r.top)/Math.max(1,r.height))*100;
-    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
-  });
-
-  document.addEventListener("pointerleave",()=>{
-    targetMx=50;
-    targetMy=30;
-    if(glowFrame===null) glowFrame=requestAnimationFrame(tickGlow);
   });
 }
 
@@ -310,20 +278,123 @@ function saveFlag(f)   {try{localStorage.setItem("sl_flag",f);}catch{}}
 function getPoints()   {try{return parseInt(localStorage.getItem("sl_points")||"0");}catch{return 0;}}
 function savePoints(p) {try{localStorage.setItem("sl_points",String(Math.max(0,Math.floor(p))));}catch{}}
 
+const SHOP_ITEMS=[
+  {id:"shield_token",name:"🛡️ Shield Token",desc:"Auto-use in SL: start your next run with a shield",cost:70,type:"token"},
+  {id:"hint_token",name:"💡 Hint Token",desc:"Adds +1 extra Sudoku hint when your base hints run out",cost:45,type:"token"},
+  {id:"point_boost",name:"💰 Point Boost",desc:"Permanent +15% points from every game",cost:260,type:"upgrade"},
+];
+
+function getShopState(){
+  try{
+    const raw=JSON.parse(localStorage.getItem("sl_shop")||"{}");
+    return {
+      tokens:{
+        shield_token:Math.max(0,Math.floor(raw?.tokens?.shield_token||0)),
+        hint_token:Math.max(0,Math.floor(raw?.tokens?.hint_token||0)),
+      },
+      upgrades:{
+        point_boost:!!raw?.upgrades?.point_boost,
+      }
+    };
+  }catch{
+    return {tokens:{shield_token:0,hint_token:0},upgrades:{point_boost:false}};
+  }
+}
+function saveShopState(s){try{localStorage.setItem("sl_shop",JSON.stringify(s));}catch{}}
+function getShopQty(id){return getShopState().tokens[id]||0;}
+function hasShopUpgrade(id){return !!getShopState().upgrades[id];}
+function addShopQty(id,amount){
+  const s=getShopState();
+  s.tokens[id]=Math.max(0,(s.tokens[id]||0)+Math.floor(amount||0));
+  saveShopState(s);
+}
+function useShopQty(id,amount=1){
+  const s=getShopState();
+  const need=Math.max(1,Math.floor(amount));
+  if((s.tokens[id]||0)<need)return false;
+  s.tokens[id]-=need;
+  saveShopState(s);
+  return true;
+}
+
 function renderPoints(){
   const el=document.getElementById("points-balance");
   if(!el)return;
   el.textContent=`Points: ${getPoints().toLocaleString()}`;
 }
 
+function showPointsPop(pts){
+  const el=document.getElementById("points-balance");
+  if(!el||!pts)return;
+  const pop=document.createElement("span");
+  pop.className="points-pop";
+  if(pts<0)pop.classList.add("spend");
+  pop.textContent=`${pts>0?"+":""}${pts} pts`;
+  el.appendChild(pop);
+  setTimeout(()=>pop.remove(),950);
+}
+
 function addPoints(amount,source){
-  const pts=Math.max(0,Math.floor(amount||0));
-  if(!pts)return getPoints();
+  const basePts=Math.max(0,Math.floor(amount||0));
+  if(!basePts)return getPoints();
+  const pts=hasShopUpgrade("point_boost")?Math.max(1,Math.floor(basePts*1.15)):basePts;
   const next=getPoints()+pts;
   savePoints(next);
   renderPoints();
+  showPointsPop(pts);
   void trackEvent("points_earned",source||null,{points:pts,total:next});
   return next;
+}
+
+function spendPoints(amount,source){
+  const cost=Math.max(0,Math.floor(amount||0));
+  if(!cost)return getPoints();
+  const cur=getPoints();
+  if(cur<cost)return null;
+  const next=cur-cost;
+  savePoints(next);
+  renderPoints();
+  showPointsPop(-cost);
+  void trackEvent("points_spent",source||null,{points:cost,total:next});
+  return next;
+}
+
+function buyShopItem(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item)return;
+  if(item.type==="upgrade"&&hasShopUpgrade(id)){renderShop();return;}
+  if(spendPoints(item.cost,`shop_${id}`)===null){
+    alert("Not enough points yet!");
+    return;
+  }
+  const s=getShopState();
+  if(item.type==="upgrade")s.upgrades[id]=true;
+  else s.tokens[id]=(s.tokens[id]||0)+1;
+  saveShopState(s);
+  void trackEvent("shop_purchase",id,{cost:item.cost});
+  renderShop();
+}
+
+function renderShop(){
+  const list=document.getElementById("shop-list");
+  if(!list)return;
+  const pts=getPoints();
+  const s=getShopState();
+  list.innerHTML="";
+  SHOP_ITEMS.forEach(item=>{
+    const owned=item.type==="upgrade"?(s.upgrades[item.id]?"Owned":"Not owned"):`Owned: ${s.tokens[item.id]||0}`;
+    const disabled=(item.type==="upgrade"&&s.upgrades[item.id])||pts<item.cost;
+    const row=document.createElement("div");
+    row.className="shop-item";
+    row.innerHTML=`<div class="shop-main"><div class="shop-name">${item.name}</div><div class="shop-desc">${item.desc}</div><div class="shop-meta">${owned} · ${item.cost} pts</div></div>`;
+    const btn=document.createElement("button");
+    btn.className="shop-buy";
+    btn.textContent=item.type==="upgrade"&&s.upgrades[item.id]?"Owned":"Buy";
+    btn.disabled=disabled;
+    btn.addEventListener("click",()=>buyShopItem(item.id));
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
 }
 
 /* ═══════════════════════════════════════════════════
@@ -365,12 +436,12 @@ function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOS
 ═══════════════════════════════════════════════════ */
 // Each entry describes one game mode shown on the swipe deck cards.
 const MODES=[
-  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", glow:"rgba(96,165,250,.35)", accent:"#60a5fa"},
-  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", glow:"rgba(34,197,94,.35)",  accent:"#4ade80"},
-  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", glow:"rgba(251,191,36,.3)",  accent:"#fbbf24"},
-  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", glow:"rgba(168,139,250,.3)", accent:"#a78bfa"},
-  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", glow:"rgba(20,184,166,.3)",  accent:"#2dd4bf"},
-  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", glow:"rgba(139,92,246,.3)",  accent:"#a78bfa"},
+  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", accent:"#60a5fa"},
+  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", accent:"#4ade80"},
+  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", accent:"#fbbf24"},
+  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", accent:"#a78bfa"},
+  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", accent:"#2dd4bf"},
+  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", accent:"#a78bfa"},
 ];
 
 let      deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
@@ -385,7 +456,7 @@ function renderCard(el,m){
   el.innerHTML="";
   if(el===topCard){const sp=document.createElement("div");sp.className="stamp stamp-play";sp.id="stamp-play";sp.textContent="PLAY";el.appendChild(sp);const ss=document.createElement("div");ss.className="stamp stamp-skip";ss.id="stamp-skip";ss.textContent="SKIP";el.appendChild(ss);}
   el.style.background=isLightTheme()?(m.bgLight||m.bg):m.bg;
-  el.style.boxShadow=isLightTheme()?`inset 0 0 0 2px rgba(255,255,255,.4),0 18px 44px ${m.glow},0 10px 24px rgba(15,23,42,.16)`:`inset 0 0 0 2px rgba(255,255,255,.08),0 20px 52px ${m.glow},0 8px 20px rgba(0,0,0,.5)`;
+  el.style.boxShadow=isLightTheme()?"inset 0 0 0 2px rgba(255,255,255,.4),0 10px 24px rgba(15,23,42,.16)":"inset 0 0 0 2px rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.5)";
   const f=document.createDocumentFragment();
   ["card-emoji","card-name","card-desc"].forEach((cls,i)=>{const d=document.createElement("div");d.className=cls;d.textContent=[m.emoji,m.name,m.desc][i];f.appendChild(d);});
   const tags=document.createElement("div");tags.className="card-tags";
@@ -413,8 +484,12 @@ document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRE
 document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
-function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();showScreen("home");}
+function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();renderShop();showScreen("home");}
 renderDeck();renderAchBar();
+
+document.getElementById("btn-shop")     .addEventListener("click",()=>{renderShop();showScreen("shop");SFX.click();});
+document.getElementById("btn-shop-close").addEventListener("click",goHome);
+document.getElementById("btn-shop-home") .addEventListener("click",goHome);
 
 /* ═══════════════════════════════════════════════════
    GENERIC NAME+FLAG SUBMIT FLOW
@@ -588,7 +663,7 @@ function slFlash(cls)  {letterEl.classList.add(cls);setTimeout(()=>letterEl.clas
 // Updates the combo badge; shows the shield icon (🛡️) when the combo shield is active.
 function updateCombo(){if(slShield&&slCombo>=3){comboEl.textContent=`🛡️🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else if(slCombo>=3){comboEl.textContent=`🔥 ${slCombo}x`;comboEl.className="sl-combo active";}else{comboEl.textContent="";comboEl.className="sl-combo";}}
 
-function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";startSLTimer();scheduleSLNext(600);}
+function startSL(){void trackEvent("game_started","sl");slScore=0;slLevel=1;slCombo=0;slMaxCombo=0;slAlive=true;slEnding=false;slShield=false;slLivesCount=slLives?3:0;if(useShopQty("shield_token",1)){slShield=true;}clearTimeout(slNextTO);showScreen("game");document.getElementById("ghost-hud").classList.toggle("hidden",!slGhost);const livesHud=document.getElementById("lives-hud");livesHud.classList.toggle("hidden",!slLives);if(slLives)updateLivesHud();letterEl.textContent="GO!";letterEl.className="letter-tile";comboEl.textContent="";comboEl.className="sl-combo";updateCombo();startSLTimer();scheduleSLNext(600);}
 function updateLivesHud(){const el=document.getElementById("lives-hud");if(!el)return;el.textContent="❤️".repeat(Math.max(0,slLivesCount))+"💔".repeat(Math.max(0,3-slLivesCount));}
 
 document.addEventListener("keydown",e=>{
@@ -815,8 +890,33 @@ function sdkUpdateNumpad(){const cnt=Array(10).fill(0);for(let r=0;r<9;r++)for(l
    HINT SYSTEM
 ═══════════════════════════════════════════════════ */
 // Fills in a random empty cell with the correct answer — uses up one of 3 hints.
-function sdkUseHint(){if(3-sdkHintsUsed<=0)return;const empties=[];for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});if(!empties.length)return;const {r,c}=empties[Math.floor(Math.random()*empties.length)];sdkPlayer[r][c]=sdkBoard[r][c];sdkNotesCells[r][c].clear();sdkClearPeerNotes(r,c,sdkBoard[r][c]);sdkRefreshCell(r,c);sdkApplyConflicts();sdkHighlight(r,c);sdkUpdateNumpad();sdkHintsUsed++;updateHintBtn();SFX.correct();if(sdkCheckWin())sdkWin();}
-function updateHintBtn(){const btn=document.getElementById("btn-sdk-hint");if(!btn)return;const left=3-sdkHintsUsed;btn.querySelector("span").textContent=`Hint (${left})`;btn.disabled=left<=0;btn.style.opacity=left<=0?"0.4":"1";}
+function sdkUseHint(){
+  const baseLeft=Math.max(0,3-sdkHintsUsed);
+  if(baseLeft<=0&&!useShopQty("hint_token",1)){updateHintBtn();return;}
+  const empties=[];
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(sdkPlayer[r][c]===0&&sdkPuzzle[r][c]===0)empties.push({r,c});
+  if(!empties.length){updateHintBtn();return;}
+  const {r,c}=empties[Math.floor(Math.random()*empties.length)];
+  sdkPlayer[r][c]=sdkBoard[r][c];
+  sdkNotesCells[r][c].clear();
+  sdkClearPeerNotes(r,c,sdkBoard[r][c]);
+  sdkRefreshCell(r,c);
+  sdkApplyConflicts();
+  sdkHighlight(r,c);
+  sdkUpdateNumpad();
+  if(baseLeft>0)sdkHintsUsed++;
+  updateHintBtn();
+  SFX.correct();
+  if(sdkCheckWin())sdkWin();
+}
+function updateHintBtn(){
+  const btn=document.getElementById("btn-sdk-hint");
+  if(!btn)return;
+  const left=Math.max(0,3-sdkHintsUsed)+getShopQty("hint_token");
+  btn.querySelector("span").textContent=`Hint (${left})`;
+  btn.disabled=left<=0;
+  btn.style.opacity=left<=0?"0.4":"1";
+}
 
 /* ═══════════════════════════════════════════════════
    RT MEDAL
@@ -848,20 +948,24 @@ document.addEventListener("keydown",e=>{
 });
 
 /* ═══════════════════════════════════════════════════
-   THEMES  (dark → light → neon)
+   THEMES  (dark ↔ light)
    Cycling applies a CSS class to <body>; CSS rules in popup.css handle the rest.
    The deck is re-rendered because card colours depend on the active theme.
 ═══════════════════════════════════════════════════ */
-const THEMES       = ["dark","light","neon"];
-const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light", neon:"⚡ Neon"};
+const THEMES       = ["dark","light"];
+const THEME_LABELS = {dark:"🌙 Dark", light:"☀️ Light"};
 
-function getTheme()    {try{return localStorage.getItem("theme")||"dark";}catch{return "dark";}}
+function getTheme()    {
+  try{
+    const t=localStorage.getItem("theme")||"dark";
+    return THEMES.includes(t)?t:"dark";
+  }catch{return "dark";}
+}
 function saveTheme(t)  {try{localStorage.setItem("theme",t);}catch{}}
 
 function applyTheme(t) {
-  document.body.classList.remove("theme-light","theme-neon");
+  document.body.classList.remove("theme-light");
   if(t==="light") document.body.classList.add("theme-light");
-  if(t==="neon")  document.body.classList.add("theme-neon");
   renderDeck();
   const b=document.getElementById("btn-theme");
   if(b) b.textContent = THEME_LABELS[t]||"🌙 Dark";
@@ -995,6 +1099,7 @@ applyTheme(getTheme());
 updateMusicBtn();
 setupSmoothUI();
 renderPoints();
+renderShop();
 void ensureInstallEventTracked();
 void trackEvent("popup_open");
 startActivePlayers();
