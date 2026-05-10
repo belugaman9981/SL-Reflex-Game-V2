@@ -284,6 +284,7 @@ const SHOP_ITEMS=[
   {id:"point_boost",name:"💰 Point Boost",desc:"Permanent +15% points from every game",cost:260,type:"upgrade"},
 ];
 
+
 function getShopState(){
   try{
     const raw=JSON.parse(localStorage.getItem("sl_shop")||"{}");
