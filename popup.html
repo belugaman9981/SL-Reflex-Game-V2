@@ -31,6 +31,7 @@
       <button class="home-ctrl-btn" id="btn-theme">🌙 Dark</button>
       <button class="home-ctrl-btn" id="btn-music">🎵 Music OFF</button>
       <button class="home-ctrl-btn" id="btn-shop">🛒 Shop</button>
+      <button class="home-ctrl-btn" id="btn-settings">⚙️ Settings</button>
     </div>
     <p class="active-players" id="active-players">Active now: --</p>
     <p class="points-balance" id="points-balance">Points: 0</p>
@@ -241,7 +242,7 @@
     <button class="btn-ghost-btn" id="btn-sdk-end-home">← Menu</button>
   </div>
 
-  <!-- ░░ STATS ░░ -->
+  <!-- ░░ SHOP ░░ -->
   <div id="screen-shop" class="screen hidden">
     <div class="lb-header">
       <h2 class="lb-title">🛒 Shop</h2>
@@ -250,6 +251,17 @@
     <p class="rt-sub">Spend points on power-ups and upgrades</p>
     <div class="shop-list" id="shop-list"></div>
     <button class="btn-ghost-btn" id="btn-shop-home">← Menu</button>
+  </div>
+
+  <!-- ░░ SETTINGS ░░ -->
+  <div id="screen-settings" class="screen hidden">
+    <div class="lb-header">
+      <h2 class="lb-title">⚙️ Settings</h2>
+      <button class="btn-ghost-btn small" id="btn-settings-close">✕</button>
+    </div>
+    <p class="rt-sub">Customize your gaming experience</p>
+    <div class="settings-container" id="settings-container"></div>
+    <button class="btn-ghost-btn" id="btn-settings-home">← Menu</button>
   </div>
 
   <!-- ░░ STATS ░░ -->
@@ -284,7 +296,9 @@
     </div>
     <button class="btn-ghost-btn" id="btn-stats-home">← Menu</button>
   </div>
-
+  <!-- ADHD Enhancement Containers -->
+  <div id="particle-container" class="particle-container"></div>
+  <div id="fidget-container" class="fidget-container"></div>
   <script src="popup.js"></script>
 </body>
 </html>

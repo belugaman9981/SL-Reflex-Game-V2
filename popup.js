@@ -173,7 +173,7 @@ function buildFlagPicker() {
 const SCREEN_IDS = [
   "home","start","game","name","leaderboard","win",
   "rt","rt-end","rt-handoff","rt-1v1",
-  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats","shop"
+  "sdk-diff","sudoku","sudoku-win","sudoku-end","stats","shop","settings"
 ];
 
 function showScreen(name) {
@@ -283,6 +283,88 @@ const SHOP_ITEMS=[
   {id:"hint_token",name:"💡 Hint Token",desc:"Adds +1 extra Sudoku hint when your base hints run out",cost:45,type:"token"},
   {id:"point_boost",name:"💰 Point Boost",desc:"Permanent +15% points from every game",cost:260,type:"upgrade"},
 ];
+
+// ADHD-friendly settings
+function getADHDSettings(){
+  try{
+    return JSON.parse(localStorage.getItem("sl_adhd_settings")||JSON.stringify({
+      particles:true,fidgetElements:true,sessionReminders:true,achievementBursts:true,
+      rtRounds:5,slTimer:60,breakInterval:30,soundVolume:0.7,customColors:false
+    }));
+  }catch{return {particles:true,fidgetElements:true,sessionReminders:true,achievementBursts:true,rtRounds:5,slTimer:60,breakInterval:30,soundVolume:0.7,customColors:false};}
+}
+function saveADHDSettings(settings){
+  try{localStorage.setItem("sl_adhd_settings",JSON.stringify(settings));}catch{}
+}
+
+// Session tracking for break reminders
+let sessionStartTime=Date.now(),lastBreakReminder=Date.now();
+function checkSessionTime(){
+  const settings=getADHDSettings();
+  if(!settings.sessionReminders)return;
+  const now=Date.now(),sessionMinutes=(now-sessionStartTime)/60000;
+  if(sessionMinutes>=settings.breakInterval&&(now-lastBreakReminder)>=settings.breakInterval*60000){
+    lastBreakReminder=now;showBreakReminder();
+  }
+}
+function showBreakReminder(){
+  const reminder=document.createElement("div");
+  reminder.className="break-reminder";
+  reminder.innerHTML=`<div class="break-content">💆‍♀️ Take a breath!<br><small>You've been playing for a while</small><button onclick="this.parentElement.parentElement.remove()">Got it</button></div>`;
+  document.body.appendChild(reminder);
+  setTimeout(()=>reminder.remove(),8000);
+}
+
+// Particle system for achievements
+function createParticleBurst(x,y,color="#60a5fa",count=12){
+  if(!getADHDSettings().particles)return;
+  const container=document.getElementById("particle-container");
+  if(!container)return;
+  for(let i=0;i<count;i++){
+    const particle=document.createElement("div");
+    particle.className="achievement-particle";
+    particle.style.left=x+"px";particle.style.top=y+"px";
+    particle.style.backgroundColor=color;
+    particle.style.setProperty("--angle",Math.random()*360+"deg");
+    particle.style.setProperty("--distance",80+Math.random()*40+"px");
+    particle.style.setProperty("--delay",Math.random()*200+"ms");
+    container.appendChild(particle);
+    setTimeout(()=>particle.remove(),1200);
+  }
+}
+function celebrateAchievement(type,value){
+  const settings=getADHDSettings();
+  if(!settings.achievementBursts)return;
+  const colors={combo:"#4ade80",level:"#60a5fa",record:"#f59e0b",streak:"#a78bfa"};
+  const rect=document.body.getBoundingClientRect();
+  createParticleBurst(rect.width/2,rect.height/2,colors[type]||"#60a5fa",type==="record"?20:12);
+  if(type==="combo"&&value>=10)SFX.click();
+}
+
+// Fidget elements system
+let fidgetElements=[];
+function createFidgetElements(){
+  if(!getADHDSettings().fidgetElements)return;
+  const container=document.getElementById("fidget-container");
+  if(!container||fidgetElements.length>0)return;
+  for(let i=0;i<6;i++){
+    const fidget=document.createElement("div");
+    fidget.className="fidget-element";
+    fidget.style.left=Math.random()*100+"%";
+    fidget.style.top=Math.random()*100+"%";
+    fidget.style.animationDelay=Math.random()*4+"s";
+    fidget.addEventListener("click",()=>{
+      fidget.style.transform=`scale(1.3) rotate(${Math.random()*360}deg)`;
+      setTimeout(()=>fidget.style.transform="",300);
+    });
+    container.appendChild(fidget);
+    fidgetElements.push(fidget);
+  }
+}
+function clearFidgetElements(){
+  fidgetElements.forEach(el=>el.remove());
+  fidgetElements=[];
+}
 
 function getShopState(){
   try{
@@ -397,6 +479,102 @@ function renderShop(){
   });
 }
 
+// Settings screen rendering
+function renderSettings(){
+  const container=document.getElementById("settings-container");
+  if(!container)return;
+  const settings=getADHDSettings();
+  container.innerHTML=`
+    <div class="settings-section">
+      <h3>🎮 Game Options</h3>
+      <label class="setting-item">
+        <span>Reaction Test Rounds</span>
+        <select id="rt-rounds">
+          <option value="3" ${settings.rtRounds===3?"selected":""}>3 Rounds</option>
+          <option value="5" ${settings.rtRounds===5?"selected":""}>5 Rounds</option>
+          <option value="7" ${settings.rtRounds===7?"selected":""}>7 Rounds</option>
+        </select>
+      </label>
+      <label class="setting-item">
+        <span>SL Timer Mode</span>
+        <select id="sl-timer">
+          <option value="30" ${settings.slTimer===30?"selected":""}>30 Second Rounds</option>
+          <option value="60" ${settings.slTimer===60?"selected":""}>60 Second Rounds</option>
+          <option value="0" ${settings.slTimer===0?"selected":""}>Endless Mode</option>
+        </select>
+      </label>
+    </div>
+    <div class="settings-section">
+      <h3>🧠 ADHD Features</h3>
+      <label class="setting-item setting-toggle">
+        <span>Achievement Particles</span>
+        <input type="checkbox" id="particles" ${settings.particles?"checked":""}>
+        <span class="toggle-slider"></span>
+      </label>
+      <label class="setting-item setting-toggle">
+        <span>Fidget Background Elements</span>
+        <input type="checkbox" id="fidget-elements" ${settings.fidgetElements?"checked":""}>
+        <span class="toggle-slider"></span>
+      </label>
+      <label class="setting-item setting-toggle">
+        <span>Achievement Celebrations</span>
+        <input type="checkbox" id="achievement-bursts" ${settings.achievementBursts?"checked":""}>
+        <span class="toggle-slider"></span>
+      </label>
+      <label class="setting-item setting-toggle">
+        <span>Break Reminders</span>
+        <input type="checkbox" id="session-reminders" ${settings.sessionReminders?"checked":""}>
+        <span class="toggle-slider"></span>
+      </label>
+      <label class="setting-item">
+        <span>Break Reminder Interval</span>
+        <select id="break-interval">
+          <option value="15" ${settings.breakInterval===15?"selected":""}>15 minutes</option>
+          <option value="30" ${settings.breakInterval===30?"selected":""}>30 minutes</option>
+          <option value="45" ${settings.breakInterval===45?"selected":""}>45 minutes</option>
+          <option value="60" ${settings.breakInterval===60?"selected":""}>60 minutes</option>
+        </select>
+      </label>
+    </div>
+    <div class="settings-section">
+      <h3>🔊 Sound</h3>
+      <label class="setting-item">
+        <span>Sound Volume</span>
+        <input type="range" id="sound-volume" min="0" max="1" step="0.1" value="${settings.soundVolume}">
+        <span class="volume-label">${Math.round(settings.soundVolume*100)}%</span>
+      </label>
+    </div>
+  `;
+  
+  // Add event listeners for settings changes
+  container.querySelectorAll("input, select").forEach(input=>{
+    input.addEventListener("change",saveCurrentSettings);
+    if(input.type==="range")input.addEventListener("input",updateVolumeLabel);
+  });
+}
+
+function saveCurrentSettings(){
+  const settings=getADHDSettings();
+  settings.rtRounds=parseInt(document.getElementById("rt-rounds").value);
+  settings.slTimer=parseInt(document.getElementById("sl-timer").value);
+  settings.particles=document.getElementById("particles").checked;
+  settings.fidgetElements=document.getElementById("fidget-elements").checked;
+  settings.achievementBursts=document.getElementById("achievement-bursts").checked;
+  settings.sessionReminders=document.getElementById("session-reminders").checked;
+  settings.breakInterval=parseInt(document.getElementById("break-interval").value);
+  settings.soundVolume=parseFloat(document.getElementById("sound-volume").value);
+  saveADHDSettings(settings);
+  
+  // Apply immediate changes
+  if(settings.fidgetElements)createFidgetElements();else clearFidgetElements();
+}
+
+function updateVolumeLabel(){
+  const volume=document.getElementById("sound-volume").value;
+  const label=document.querySelector(".volume-label");
+  if(label)label.textContent=Math.round(volume*100)+"%";
+}
+
 /* ═══════════════════════════════════════════════════
    STATS
    Per-game personal records persisted as a single JSON object in localStorage.
@@ -436,12 +614,13 @@ function markDailyDone(){try{localStorage.setItem("daily_date",new Date().toISOS
 ═══════════════════════════════════════════════════ */
 // Each entry describes one game mode shown on the swipe deck cards.
 const MODES=[
-  {id:"sl",    emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", accent:"#60a5fa"},
-  {id:"rt",    emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", accent:"#4ade80"},
-  {id:"sudoku",emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", accent:"#fbbf24"},
-  {id:"daily", emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", accent:"#a78bfa"},
-  {id:"lb",    emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", accent:"#2dd4bf"},
-  {id:"stats", emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", accent:"#a78bfa"},
+  {id:"sl",      emoji:"🧠",name:"SL Challenge",   desc:"Endless — get on the world leaderboard",      tags:["10 Levels","Endless","🌍 Global"],  bg:"linear-gradient(145deg,#0f2044,#1a1060)", bgLight:"linear-gradient(145deg,#93c5fd,#60a5fa)", accent:"#60a5fa"},
+  {id:"rt",      emoji:"⚡",name:"Reaction Test",  desc:"Hit SPACE the instant you see green",          tags:["5 Rounds","1v1 mode","Reflexes"],  bg:"linear-gradient(145deg,#0a2e1a,#061f0f)", bgLight:"linear-gradient(145deg,#86efac,#4ade80)", accent:"#4ade80"},
+  {id:"sudoku",  emoji:"🔢",name:"Sudoku",         desc:"Fill the grid — no repeats in row, col or box",tags:["3 Diffs","Notes","Logic"],          bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", accent:"#fbbf24"},
+  {id:"daily",   emoji:"📅",name:"Daily Challenge",desc:"Today's seeded puzzle — same for everyone",    tags:["Sudoku","Seeded","Daily"],          bg:"linear-gradient(145deg,#1a0a2e,#0f0520)", bgLight:"linear-gradient(145deg,#d8b4fe,#c084fc)", accent:"#a78bfa"},
+  {id:"lb",      emoji:"🌍",name:"Leaderboard",    desc:"World rankings across all three games",        tags:["SL","Reaction","Sudoku"],           bg:"linear-gradient(145deg,#0d2020,#061410)", bgLight:"linear-gradient(145deg,#99f6e4,#2dd4bf)", accent:"#2dd4bf"},
+  {id:"stats",   emoji:"📊",name:"My Stats",       desc:"Personal records, streaks and history",        tags:["Records","Streaks","History"],      bg:"linear-gradient(145deg,#1a0e2e,#0e0620)", bgLight:"linear-gradient(145deg,#c4b5fd,#8b5cf6)", accent:"#a78bfa"},
+  {id:"settings",emoji:"⚙️",name:"Settings",       desc:"Customize your gaming experience",             tags:["ADHD","Options","Sound"],           bg:"linear-gradient(145deg,#2a1a0e,#1a0f05)", bgLight:"linear-gradient(145deg,#fde68a,#fbbf24)", accent:"#fbbf24"},
 ];
 
 let      deckIdx=0,dragging=false,dragX=0,dragStart=0,ptId=null;
@@ -474,7 +653,7 @@ function setDrag(dx){const r=Math.min(Math.abs(dx)/150,1);topCard.style.transfor
 function flyOff(dir){topCard.style.transition="transform .38s cubic-bezier(.25,.8,.5,1),opacity .38s";topCard.style.transform=`translateX(${dir==="right"?FLY:-FLY}px) rotate(${dir==="right"?MAX_ROT:-MAX_ROT}deg)`;topCard.style.opacity="0";backCard.style.transition="transform .38s";backCard.style.transform="scale(1) translateY(0)";setTimeout(()=>{const m=MODES[deckIdx%MODES.length];deckIdx++;dir==="right"?launch(m.id):renderDeck();},380);}
 function snapBack(){topCard.style.transition="transform .35s cubic-bezier(.34,1.56,.64,1)";topCard.style.transform="";backCard.style.transition="transform .35s";backCard.style.transform="scale(.92) translateY(10px)";getStampP().style.opacity=getStampS().style.opacity="0";}
 // Routes a mode ID to its start function.
-function launch(id){if(id==="sl"){refreshSLScreen();showScreen("start");}else if(id==="rt")startRT(false);else if(id==="sudoku")showScreen("sdk-diff");else if(id==="daily")startDailyChallenge();else if(id==="lb")openLeaderboard("sl",null,null);else if(id==="stats"){renderStatsScreen();showScreen("stats");}}
+function launch(id){if(id==="sl"){refreshSLScreen();showScreen("start");}else if(id==="rt")startRT(false);else if(id==="sudoku")showScreen("sdk-diff");else if(id==="daily")startDailyChallenge();else if(id==="lb")openLeaderboard("sl",null,null);else if(id==="stats"){renderStatsScreen();showScreen("stats");}else if(id==="settings"){renderSettings();showScreen("settings");}}
 
 topCard .addEventListener("pointerdown",e=>{dragging=true;dragStart=e.clientX;dragX=0;ptId=e.pointerId;topCard.setPointerCapture(e.pointerId);topCard.style.transition="";});
 topCard .addEventListener("pointermove",e=>{if(!dragging||e.pointerId!==ptId)return;dragX=e.clientX-dragStart;setDrag(dragX);});
@@ -484,12 +663,17 @@ document.getElementById  ("btn-like").addEventListener("click",()=>{setDrag(THRE
 document.getElementById  ("btn-nope").addEventListener("click",()=>{setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);});
 document.addEventListener("keydown",e=>{if(!document.getElementById("screen-home").classList.contains("hidden")){if(e.key==="ArrowRight"){setDrag(THRESH+10);setTimeout(()=>flyOff("right"),50);}if(e.key==="ArrowLeft"){setDrag(-(THRESH+10));setTimeout(()=>flyOff("left"),50);}}});
 
-function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();renderShop();showScreen("home");}
+function goHome(){slAlive=false;stopSLTimer();stopIdle();sdkStopTimer();sdkSetNotesMode(false);deckIdx=0;renderDeck();renderAchBar();renderPoints();renderShop();showScreen("home");
+  // ADHD: Initialize session tracking and fidget elements
+  sessionStartTime=Date.now();createFidgetElements();setInterval(checkSessionTime,60000);}
 renderDeck();renderAchBar();
 
 document.getElementById("btn-shop")     .addEventListener("click",()=>{renderShop();showScreen("shop");SFX.click();});
 document.getElementById("btn-shop-close").addEventListener("click",goHome);
 document.getElementById("btn-shop-home") .addEventListener("click",goHome);
+document.getElementById("btn-settings").addEventListener("click",()=>{renderSettings();showScreen("settings");SFX.click();});
+document.getElementById("btn-settings-close").addEventListener("click",goHome);
+document.getElementById("btn-settings-home").addEventListener("click",goHome);
 
 /* ═══════════════════════════════════════════════════
    GENERIC NAME+FLAG SUBMIT FLOW
@@ -677,6 +861,10 @@ document.addEventListener("keydown",e=>{
     slCombo++;if(slCombo>slMaxCombo)slMaxCombo=slCombo;
     // Bonus points scale with combo: +1 at 5x, +2 at 10x, +4 at 20x.
     const bonus=slCombo>=20?4:slCombo>=10?2:slCombo>=5?1:0;slScore+=1+bonus;SFX.combo(slCombo);
+    
+    // ADHD: Achievement celebrations for combo milestones
+    if(slCombo===10||slCombo===20||slCombo===30||slCombo===50)celebrateAchievement("combo",slCombo);
+    
     if(slCombo>=15)unlockAch("on_fire");if(slScore>=100)unlockAch("centurion");if(slCombo>=25)unlockAch("combinator");
     // 10x combo adds 3s to the timer (reward for streaks in timed modes).
     if(slCombo===10&&slSelectedTime!==99){slTime=Math.min(slTime+3,slMaxTime);updateHud();}
@@ -684,7 +872,7 @@ document.addEventListener("keydown",e=>{
     if(slCombo===20&&!slShield)slShield=true;
     slFlash("correct");updateCombo();
     const newLevel=getLevelForScore(slScore);
-    if(newLevel>slLevel){slLevel=newLevel;updateHud();SFX.levelup();const rect=letterEl.getBoundingClientRect();spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2);letterEl.textContent=slLevel===SL_MAX_LEVEL?"MAX LVL!!!":`LVL ${slLevel}!`;letterEl.className="letter-tile";stopIdle();scheduleSLNext(600);return;}
+    if(newLevel>slLevel){slLevel=newLevel;updateHud();SFX.levelup();const rect=letterEl.getBoundingClientRect();spawnParticles(rect.left+rect.width/2,rect.top+rect.height/2);celebrateAchievement("level",newLevel);letterEl.textContent=slLevel===SL_MAX_LEVEL?"MAX LVL!!!":`LVL ${slLevel}!`;letterEl.className="letter-tile";stopIdle();scheduleSLNext(600);return;}
     updateHud();slNext();startIdle();
   } else {
     SFX.wrong();slFlash("wrong");shakeEl(letterEl);
@@ -735,7 +923,9 @@ function slEnd(reason){
    Red tiles ("fakes") and pressing before the tile turns green ("early")
    are both penalised. 1v1 mode lets two players alternate on one device.
 ═══════════════════════════════════════════════════ */
-const RT_ROUNDS=5;
+// RT_ROUNDS is now dynamic based on ADHD settings
+function getRTRounds(){return getADHDSettings().rtRounds;}
+const RT_ROUNDS=5; // Legacy constant, use getRTRounds() instead
 let rtRound=0,rtTimes=[],rtGoTime=null,rtWaiting=false,rtActive=false,rtDelay=null,rtFakeActive=false,rt1v1=false,rtPhase=1,rtP1Times=[];
 const rtTileEl=document.getElementById("rt-tile"),rtTileT=document.getElementById("rt-tile-text"),rtTileL=document.getElementById("rt-tile-label"),rtRoundL=document.getElementById("rt-round-label"),rtLog=document.getElementById("rt-log"),rtSub=document.getElementById("rt-sub");
 
@@ -752,9 +942,9 @@ function rtReset(){clearTimeout(rtDelay);rtWaiting=rtActive=rtFakeActive=false;r
 function rtSetState(s,e,l){rtTileEl.className=`rt-tile ${s}`;rtTileT.textContent=e;rtTileL.textContent=l;}
 function startRT(is1v1){void trackEvent("game_started",is1v1?"rt_1v1":"rt");rt1v1=is1v1;rtPhase=1;rtP1Times=[];rtRound=0;rtTimes=[];rtLog.innerHTML="";document.getElementById("rt-mode-badge").textContent=is1v1?"⚔️ 1v1":"";showScreen("rt");rtNextRound();}
 
-function rtNextRound(){rtRound++;rtRoundL.textContent=`${rt1v1?`P${rtPhase} · `:""}Round ${rtRound} / ${RT_ROUNDS}`;rtSub.textContent="Green = GO  ·  Red = don't press!";rtSetState("waiting","⏳","Get ready…");rtWaiting=true;rtActive=rtFakeActive=false;rtGoTime=null;const td=1800+Math.random()*2700,hf=Math.random()<.3,fa=td*(.3+Math.random()*.3);if(hf){rtDelay=setTimeout(()=>{if(!rtWaiting)return;rtFakeActive=true;rtSetState("fake","🔴","Don't press!");SFX.rtFake();setTimeout(()=>{if(rtFakeActive){rtFakeActive=false;rtSetState("waiting","⏳","Stay sharp…");}},500);},fa);}setTimeout(()=>{clearTimeout(rtDelay);if(!rtWaiting)return;rtSetState("ready","👀","Almost…");rtDelay=setTimeout(()=>{rtWaiting=false;rtActive=true;rtGoTime=performance.now();rtSetState("go","GO!","Press SPACE!");SFX.rtGo();},350+Math.random()*300);},td);}
+function rtNextRound(){rtRound++;rtRoundL.textContent=`${rt1v1?`P${rtPhase} · `:""}Round ${rtRound} / ${getRTRounds()}`;rtSub.textContent="Green = GO  ·  Red = don't press!";rtSetState("waiting","⏳","Get ready…");rtWaiting=true;rtActive=rtFakeActive=false;rtGoTime=null;const td=1800+Math.random()*2700,hf=Math.random()<.3,fa=td*(.3+Math.random()*.3);if(hf){rtDelay=setTimeout(()=>{if(!rtWaiting)return;rtFakeActive=true;rtSetState("fake","🔴","Don't press!");SFX.rtFake();setTimeout(()=>{if(rtFakeActive){rtFakeActive=false;rtSetState("waiting","⏳","Stay sharp…");}},500);},fa);}setTimeout(()=>{clearTimeout(rtDelay);if(!rtWaiting)return;rtSetState("ready","👀","Almost…");rtDelay=setTimeout(()=>{rtWaiting=false;rtActive=true;rtGoTime=performance.now();rtSetState("go","GO!","Press SPACE!");SFX.rtGo();},350+Math.random()*300);},td);}
 
-function rtHandleSpace(){if(document.getElementById("screen-rt").classList.contains("hidden"))return;if(rtFakeActive){rtFakeActive=false;rtWaiting=false;rtActive=false;clearTimeout(rtDelay);rtSetState("early","⚠️","Fake-out!");SFX.rtEarly();rtTimes.push("fake");rtAddLog(rtRound,"fake");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtWaiting){clearTimeout(rtDelay);rtWaiting=false;rtSetState("early","⚠️","Too early!");SFX.rtEarly();rtTimes.push("early");rtAddLog(rtRound,"early");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtActive){const ms=Math.round(performance.now()-rtGoTime);rtActive=false;rtTimes.push(ms);const sp=ms<230?"fast":ms<380?"medium":"slow";rtSetState("done","✓",`${ms} ms`);rtTileT.style.fontSize="30px";rtTileT.style.color=sp==="fast"?"#22c55e":sp==="medium"?"#f59e0b":"#f87171";rtAddLog(rtRound,ms,sp);if(ms<200)unlockAch("cyborg");if(rtRound>=RT_ROUNDS)setTimeout(rtDone,900);else setTimeout(()=>{rtTileT.style.fontSize=rtTileT.style.color="";rtNextRound();},950);}}
+function rtHandleSpace(){if(document.getElementById("screen-rt").classList.contains("hidden"))return;if(rtFakeActive){rtFakeActive=false;rtWaiting=false;rtActive=false;clearTimeout(rtDelay);rtSetState("early","⚠️","Fake-out!");SFX.rtEarly();rtTimes.push("fake");rtAddLog(rtRound,"fake");if(rtRound>=getRTRounds())setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtWaiting){clearTimeout(rtDelay);rtWaiting=false;rtSetState("early","⚠️","Too early!");SFX.rtEarly();rtTimes.push("early");rtAddLog(rtRound,"early");if(rtRound>=getRTRounds())setTimeout(rtDone,900);else setTimeout(rtNextRound,1200);return;}if(rtActive){const ms=Math.round(performance.now()-rtGoTime);rtActive=false;rtTimes.push(ms);const sp=ms<230?"fast":ms<380?"medium":"slow";rtSetState("done","✓",`${ms} ms`);rtTileT.style.fontSize="30px";rtTileT.style.color=sp==="fast"?"#22c55e":sp==="medium"?"#f59e0b":"#f87171";rtAddLog(rtRound,ms,sp);if(ms<200)unlockAch("cyborg");if(rtRound>=getRTRounds())setTimeout(rtDone,900);else setTimeout(()=>{rtTileT.style.fontSize=rtTileT.style.color="";rtNextRound();},950);}}
 function rtAddLog(round,ms,speed){const row=document.createElement("div");row.className="rt-log-row";const cls=ms==="early"?"early":ms==="fake"?"fake":speed;const txt=ms==="early"?"⚠ Early":ms==="fake"?"🔴 Faked":`${ms} ms`;row.innerHTML=`<span class="rn">Round ${round}</span><span class="rm ${cls}">${txt}</span>`;rtLog.appendChild(row);}
 // Calculates average of valid (numeric) reaction times; returns null if none.
 function rtCalcAvg(times){const v=times.filter(t=>typeof t==="number");return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null;}
@@ -767,7 +957,7 @@ function rtSubmit(){
   openNameEntry("Reaction Results","",`Avg: <span>${avg} ms</span> · Best: <span>${best} ms</span>`,false,
     async(name,flag)=>{
       if(name){
-        const ok=await dbInsert("game_scores",{name,flag,game:"rt",score:avg,meta:{best,rounds:RT_ROUNDS}});
+        const ok=await dbInsert("game_scores",{name,flag,game:"rt",score:avg,meta:{best,rounds:getRTRounds()}});
         if(ok){void trackEvent("submit_success","rt",{score:avg,best});unlockAch("first_score");await openLeaderboard("rt",name,avg);}
         else{alert("Submit failed");showScreen("rt-end");}
       } else {openLeaderboard("rt",null,null);}
